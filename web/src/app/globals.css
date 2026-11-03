@@ -1,0 +1,460 @@
+@import "tailwindcss";
+
+/*
+ * Tokens. Light "paper" on :root, dark "night recorder" under prefers-color-scheme unless the
+ * reader chose light, and under data-theme="dark". Utilities only ever reference these.
+ */
+:root {
+  --paper: #f3f5f4;
+  --paper-raised: #fbfcfb;
+  --grid: #dce2df;
+  --rule: #c6ceca;
+  --ink: #1b2430;
+  --ink-soft: #4a5662;
+  --ink-faint: #7d8891;
+  --trace-1: #1b2430;
+  --trace-2: #c2362f;
+  --trace-3: #2f5da8;
+  --trace-4: #2e7d4f;
+  --sev-operational: #8aa4ae;
+  --sev-maintenance: #5e83c4;
+  --sev-degraded: #e3b505;
+  --sev-partial: #ee7b22;
+  --sev-major: #d7263d;
+  --sev-critical: #8e1538;
+  --accent: #2f5da8;
+
+  /* Glyph outlines: on light paper the pale severity colors are mixed toward ink to clear 3:1. */
+  --sev-operational-line: color-mix(in oklab, var(--sev-operational) 62%, var(--ink));
+  --sev-maintenance-line: var(--sev-maintenance);
+  --sev-degraded-line: color-mix(in oklab, var(--sev-degraded) 58%, var(--ink));
+  --sev-partial-line: color-mix(in oklab, var(--sev-partial) 74%, var(--ink));
+  --sev-major-line: var(--sev-major);
+  --sev-critical-line: var(--sev-critical);
+  --faint-line: var(--ink-faint);
+
+  --wash: color-mix(in oklab, var(--accent) 9%, transparent);
+  --hover: color-mix(in oklab, var(--ink) 5%, transparent);
+  --shade: color-mix(in oklab, var(--ink) 3%, var(--paper));
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f151b;
+    --paper-raised: #151d25;
+    --grid: #1f2a33;
+    --rule: #2b3742;
+    --ink: #e4e8e3;
+    --ink-soft: #a9b3b8;
+    --ink-faint: #6f7b83;
+    --trace-1: #e4e8e3;
+    --trace-2: #ff6b5e;
+    --trace-3: #7ea6f5;
+    --trace-4: #6cc48f;
+    --sev-operational: #9fb4bc;
+    --sev-maintenance: #86a6e0;
+    --sev-degraded: #f2cc3d;
+    --sev-partial: #ff9a4d;
+    --sev-major: #ff5a6e;
+    --sev-critical: #e0457a;
+    --accent: #7ea6f5;
+    --sev-operational-line: var(--sev-operational);
+    --sev-degraded-line: var(--sev-degraded);
+    --sev-partial-line: var(--sev-partial);
+    --wash: color-mix(in oklab, var(--accent) 14%, transparent);
+    --hover: color-mix(in oklab, var(--ink) 7%, transparent);
+    --shade: color-mix(in oklab, var(--ink) 4%, var(--paper));
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #0f151b;
+  --paper-raised: #151d25;
+  --grid: #1f2a33;
+  --rule: #2b3742;
+  --ink: #e4e8e3;
+  --ink-soft: #a9b3b8;
+  --ink-faint: #6f7b83;
+  --trace-1: #e4e8e3;
+  --trace-2: #ff6b5e;
+  --trace-3: #7ea6f5;
+  --trace-4: #6cc48f;
+  --sev-operational: #9fb4bc;
+  --sev-maintenance: #86a6e0;
+  --sev-degraded: #f2cc3d;
+  --sev-partial: #ff9a4d;
+  --sev-major: #ff5a6e;
+  --sev-critical: #e0457a;
+  --accent: #7ea6f5;
+  --sev-operational-line: var(--sev-operational);
+  --sev-degraded-line: var(--sev-degraded);
+  --sev-partial-line: var(--sev-partial);
+  --wash: color-mix(in oklab, var(--accent) 14%, transparent);
+  --hover: color-mix(in oklab, var(--ink) 7%, transparent);
+  --shade: color-mix(in oklab, var(--ink) 4%, var(--paper));
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-grid: var(--grid);
+  --color-rule: var(--rule);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-accent: var(--accent);
+  --color-wash: var(--wash);
+  --color-hover: var(--hover);
+  --color-shade: var(--shade);
+  --color-trace-1: var(--trace-1);
+  --color-trace-2: var(--trace-2);
+  --color-trace-3: var(--trace-3);
+  --color-trace-4: var(--trace-4);
+  --color-sev-operational: var(--sev-operational);
+  --color-sev-maintenance: var(--sev-maintenance);
+  --color-sev-degraded: var(--sev-degraded);
+  --color-sev-partial: var(--sev-partial);
+  --color-sev-major: var(--sev-major);
+  --color-sev-critical: var(--sev-critical);
+
+  --font-sans: var(--font-geologica-ext), var(--font-geologica), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-martian), ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* Modular scale, ratio 1.25 from a 16px body. */
+  --text-*: initial;
+  --text-xs: 0.8rem;
+  --text-xs--line-height: 1.45;
+  --text-base: 1rem;
+  --text-base--line-height: 1.55;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.45;
+  --text-xl: 1.5625rem;
+  --text-xl--line-height: 1.28;
+  --text-2xl: 1.953rem;
+  --text-2xl--line-height: 1.18;
+  --text-3xl: 2.441rem;
+  --text-3xl--line-height: 1.1;
+  --text-4xl: 3.052rem;
+  --text-4xl--line-height: 1.04;
+  --text-5xl: 3.815rem;
+  --text-5xl--line-height: 1;
+  --text-6xl: 4.768rem;
+  --text-6xl--line-height: 0.95;
+
+  --radius-*: initial;
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-full: 9999px;
+
+  --shadow-*: initial;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@layer base {
+  html {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 1rem;
+    line-height: 1.55;
+    min-height: 100dvh;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--accent) 24%, transparent);
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    text-decoration-color: color-mix(in oklab, var(--accent) 45%, transparent);
+    transition: text-decoration-color 120ms var(--ease-out), color 120ms var(--ease-out);
+  }
+
+  a:hover {
+    text-decoration-color: currentColor;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 600;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@layer components {
+  .shell {
+    --margin: 16px;
+    width: 100%;
+    max-width: calc(1320px + 2 * var(--margin));
+    margin-inline: auto;
+    padding-inline: var(--margin);
+  }
+
+  @media (min-width: 40rem) {
+    .shell {
+      --margin: 32px;
+    }
+  }
+
+  @media (min-width: 80rem) {
+    .shell {
+      --margin: 60px;
+    }
+  }
+
+  /* Display type: Geologica's sharpness axis gives large sizes an engraved, instrument feel. */
+  .display {
+    font-variation-settings: "SHRP" 48;
+    letter-spacing: -0.025em;
+  }
+
+  .prose-measure {
+    max-width: 68ch;
+  }
+
+  /* Vendor text can hold long URLs or tokens with no spaces; let them break anywhere. */
+  .vendor-text {
+    overflow-wrap: anywhere;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: 12px;
+    top: -48px;
+    z-index: 100;
+    padding: 8px 12px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    color: var(--ink);
+  }
+
+  .skip-link:focus {
+    top: 12px;
+  }
+
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* A ruled ledger entry: raised paper, hairline, small corners, no shadow. */
+  .ledger {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+  }
+
+  /* Plain text link that only shows its underline on hover, for dense lists. */
+  .quiet-link {
+    color: inherit;
+    text-decoration-line: none;
+  }
+
+  .quiet-link:hover {
+    text-decoration-line: underline;
+    text-decoration-color: currentColor;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 4px 11px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+    line-height: 1.2;
+    transition: background-color 120ms var(--ease-out), border-color 120ms var(--ease-out), color 120ms var(--ease-out);
+  }
+
+  .chip:hover {
+    background: var(--hover);
+    color: var(--ink);
+  }
+
+  .chip[aria-pressed="true"],
+  .chip[aria-checked="true"] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+
+  .field {
+    min-height: 40px;
+    padding: 8px 12px;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--paper-raised);
+    color: var(--ink);
+    font: inherit;
+  }
+
+  .field::placeholder {
+    color: var(--ink-soft);
+    opacity: 1;
+  }
+
+  .field:focus-visible {
+    outline-offset: 0;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 8px 14px;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--paper-raised);
+    color: var(--ink);
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1.2;
+    text-decoration: none;
+    transition: background-color 120ms var(--ease-out), border-color 120ms var(--ease-out);
+  }
+
+  .button:hover {
+    background: var(--hover);
+    border-color: var(--ink-faint);
+  }
+
+  .button[disabled] {
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  .section-rule {
+    border-top: 1px solid var(--rule);
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+
+  .table th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--ink-soft);
+    padding: 8px 12px 8px 0;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+
+  .table td {
+    padding: 9px 12px 9px 0;
+    border-bottom: 1px solid var(--grid);
+    vertical-align: top;
+  }
+
+  .table tr:last-child td {
+    border-bottom: 0;
+  }
+}
+
+/* Epicenter ripple: three rings expand once from the point an incident arrived. */
+@keyframes ripple {
+  from {
+    transform: translate(-50%, -50%) scale(0.2);
+    opacity: 0.75;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
+/* The ink bleed behind the pen nib breathes slowly while the pen is drawing. */
+@keyframes bleed {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

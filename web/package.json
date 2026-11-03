@@ -1,0 +1,52 @@
+{
+  "name": "mercalli-web",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "packageManager": "pnpm@10.34.9",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "node scripts/copy-duckdb.mjs && next dev",
+    "build": "node scripts/copy-duckdb.mjs && next build",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "size": "node scripts/size-report.mjs",
+    "fixtures:dump": "node scripts/dump-fixtures.ts"
+  },
+  "dependencies": {
+    "@duckdb/duckdb-wasm": "1.32.0",
+    "@fontsource-variable/geologica": "5.3.0",
+    "@fontsource-variable/martian-mono": "5.3.0",
+    "d3-force": "3.0.1",
+    "d3-quadtree": "3.0.2",
+    "d3-scale": "4.0.3",
+    "d3-shape": "3.2.1",
+    "d3-time": "3.1.1",
+    "gsap": "3.15.0",
+    "motion": "14.9.0",
+    "next": "16.4.4",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.4",
+    "@types/d3-force": "3.0.10",
+    "@types/d3-quadtree": "3.0.6",
+    "@types/d3-scale": "4.0.9",
+    "@types/d3-shape": "3.2.0",
+    "@types/d3-time": "3.0.4",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "10.14.0",
+    "eslint-config-next": "16.4.4",
+    "tailwindcss": "4.3.4",
+    "typescript": "6.0.3",
+    "vite": "8.3.5",
+    "vitest": "5.1.0"
+  }
+}

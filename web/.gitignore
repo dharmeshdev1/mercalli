@@ -1,0 +1,2 @@
+# Copied from node_modules at build time (see scripts/copy-duckdb.mjs)
+public/duckdb/
