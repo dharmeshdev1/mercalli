@@ -36,8 +36,11 @@ You need Docker with Compose v2.
 
 ```sh
 git clone https://github.com/dharmeshdev1/mercalli && cd mercalli
-docker compose -f deploy/docker-compose.yml up --build -d
+MERCALLI_IMAGE=ghcr.io/dharmeshdev1/mercalli:0.1.0 docker compose -f deploy/docker-compose.yml up -d --no-build
 ```
+
+That pulls the published image (amd64 and arm64). To build from your checkout instead, run
+`docker compose -f deploy/docker-compose.yml up --build -d`.
 
 This starts PostgreSQL 17 and the server, which creates its tables, polls every status page and is
 ready about a minute later:

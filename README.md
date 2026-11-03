@@ -98,7 +98,8 @@ PostgreSQL, streams changes over server-sent events, exposes Prometheus metrics,
 Discord, Microsoft Teams, PagerDuty, email or any webhook about the vendors in your stack:
 
 ```sh
-docker compose -f deploy/docker-compose.yml up
+git clone https://github.com/dharmeshdev1/mercalli && cd mercalli
+MERCALLI_IMAGE=ghcr.io/dharmeshdev1/mercalli:0.1.0 docker compose -f deploy/docker-compose.yml up -d --no-build
 ```
 
 [Self-hosting guide](docs/self-hosting.md), including a Helm chart for Kubernetes.
