@@ -144,7 +144,7 @@ least as good as the best simple evidence, combined in one ranking", not as a la
 negative results shaped the design: predicting any incident at all in the window only learns which
 services fail often, and a larger model overfit the few hundred positive examples a year provides.
 
-## What the history shows
+## What the data shows
 
 - **AWS is the provider other companies blame most.** 323 services named it in 2,522 of their own
   incident reports. Next come Cloudflare (190 services), Google Cloud (114), Microsoft Azure (108)
@@ -154,6 +154,10 @@ services fail often, and a larger model overfit the few hundred positive example
   7 December 2021: 117 services, 35 naming AWS.
 - **6.5% of incidents are posted only after they are over**, so they can never be forecast while
   open. Mercalli records when it first saw each incident to keep that visible.
+- **Two companies run the front door of a big share of the web.** Among the top 10,000 sites,
+  Cloudflare answers DNS for 27.6% and AWS for 24.1%; Cloudflare's edge serves 29.9%. Of the
+  AWS-hosted sites whose region is known, 51.8% are in us-east-1. (Census of 3 November 2026 from a
+  GitHub-hosted runner in the US; [method and limits](docs/census.md).)
 
 ## How it works
 
