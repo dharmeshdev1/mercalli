@@ -14,9 +14,13 @@ artifacts, and Pages for hosting.
 | CI (`ci.yml`) | Every push and pull request | Lint, tests on SQLite and PostgreSQL, web build, container build | Nothing |
 | Release (`release.yml`) | On `v*` tags | Multi-arch container image to GHCR, wheel and sdist on the release | GHCR, the tagged release |
 
-GitHub runs scheduled workflows on a best effort basis. Five minute schedules commonly run every
-five to fifteen minutes, and more slowly at busy times. The site shows its own data age, and the
-`meta.json` document records the last tick.
+GitHub runs scheduled workflows on a best effort basis: they can start late, and for some
+repositories they do not start at all for long stretches. So the pipeline does not depend on the
+scheduler alone. Its last step checks whether a scheduled run has started in the past fifteen
+minutes; if not, it waits until about five minutes have passed since it began and dispatches the
+next run itself. While the scheduler works, that step does nothing. The Models workflow also
+restarts the pipeline once a day if nothing is running, so the chain can never stay broken. The
+site shows its own data age, and `meta.json` records the last tick.
 
 ## Health at a glance
 
@@ -29,9 +33,9 @@ five to fifteen minutes, and more slowly at busy times. The site shows its own d
 
 ## Runbook
 
-**The site is stale.** Check the Live pipeline runs. If runs are queued but not starting, GitHub
-is delaying schedules; trigger one with `gh workflow run pipeline.yml`. If runs fail at "Deploy",
-check that Pages is enabled with GitHub Actions as the source.
+**The site is stale.** Check the Live pipeline runs. If none is running or queued, start one with
+`gh workflow run pipeline.yml`; it keeps itself going from there. If runs fail at "Deploy", check
+that Pages is enabled with GitHub Actions as the source.
 
 **One service is always `unknown`.** Its status page failed for 30 minutes or more. Run
 `mercalli catalog discover --top 0` locally to re-verify the seed list; if the page moved, update
