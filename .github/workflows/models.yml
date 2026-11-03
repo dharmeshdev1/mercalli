@@ -99,8 +99,10 @@ jobs:
       - name: Train, evaluate and build artifacts
         if: steps.plan.outputs.weekly == 'true'
         run: |
+          # Evaluate on the last ten months, calibrate on the six before, train on everything older;
+          # the production refit then uses all of it. Cascades are rare, so the test window is long.
           uv run mercalli train --raw data/raw --out artifacts --census data/census \
-            --calib-start "$(date -u -d '-10 months' +%Y-%m-01)" --test-start "$(date -u -d '-4 months' +%Y-%m-01)"
+            --calib-start "$(date -u -d '-16 months' +%Y-%m-01)" --test-start "$(date -u -d '-10 months' +%Y-%m-01)"
           echo "${{ steps.plan.outputs.stamp }}-${{ github.run_id }}" > artifacts/VERSION
 
       - name: Restore the live engine state, read only
