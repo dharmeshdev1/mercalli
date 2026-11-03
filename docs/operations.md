@@ -10,6 +10,7 @@ artifacts, and Pages for hosting.
 | --- | --- | --- | --- |
 | Live pipeline (`pipeline.yml`) | Every 5 minutes | One engine tick, publish the API, deploy Pages | `state-*` cache, reads `artifacts` and `site` releases |
 | Models (`models.yml`) | Daily at 03:17 UTC; weekly steps on Sundays | Refresh history; weekly: discovery, census, train, publish artifacts | `raw-*` cache, writes the `artifacts` release, may commit `catalog/services.yaml` |
+| Census (`census.yml`) | Saturdays at 02:41 UTC | Survey the top 10,000 domains and every catalog domain from a GitHub runner | Writes `census.tar.gz` to the `artifacts` release |
 | Web (`web.yml`) | On changes under `web/` | Build the web app, publish it to the `site` release, trigger a deploy | Writes the `site` release |
 | CI (`ci.yml`) | Every push and pull request | Lint, tests on SQLite and PostgreSQL, web build, container build | Nothing |
 | Release (`release.yml`) | On `v*` tags | Multi-arch container image to GHCR, wheel and sdist on the release | GHCR, the tagged release |
