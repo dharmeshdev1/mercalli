@@ -1,0 +1,176 @@
+# Daily: refresh the incident history from every status page that publishes one.
+# Sundays (or on demand): rediscover status pages, fetch the latest census (census.yml), retrain and
+# evaluate both models, and publish the artifacts the live pipeline uses.
+#
+# Training runs third-party packages with a read-only token. Publishing (release upload, signing,
+# the catalog commit) happens in a separate job that runs none of that code.
+#
+# The raw history cache lives in the Actions cache. If it is ever evicted, the next run rebuilds it
+# from the vendors' pages, which takes a few hours and fits inside one job.
+name: Models
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      weekly:
+        description: Run the weekly steps now (discovery and training)
+        type: boolean
+        default: true
+
+concurrency:
+  group: models
+  cancel-in-progress: false
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 345
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      weekly: ${{ steps.plan.outputs.weekly }}
+      stamp: ${{ steps.plan.outputs.stamp }}
+    env:
+      MERCALLI_MODEL_CACHE: ${{ github.workspace }}/.model-cache
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install
+        run: uv sync --locked --extra ml
+
+      - name: Decide what runs today
+        id: plan
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then weekly="${{ inputs.weekly }}";
+          elif [ "$(date -u +%u)" = "7" ]; then weekly=true; else weekly=false; fi
+          echo "weekly=$weekly" >> "$GITHUB_OUTPUT"
+          echo "stamp=$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore raw history
+        uses: actions/cache/restore@v6
+        with:
+          path: data/raw
+          key: raw-${{ github.run_id }}
+          restore-keys: raw-
+
+      - name: Restore embedding model
+        uses: actions/cache@v6
+        with:
+          path: .model-cache
+          key: fastembed-all-MiniLM-L6-v2-1
+
+      - name: Rediscover status pages
+        if: steps.plan.outputs.weekly == 'true'
+        run: uv run mercalli catalog discover --top 20000 --cache data/cache/tranco.zip
+
+      - name: Refresh incident history
+        run: uv run mercalli backfill --raw data/raw --since 2021-01-01 --concurrency 12
+
+      - name: Save raw history
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: data/raw
+          key: raw-${{ github.run_id }}
+
+      - name: Fetch the latest census
+        if: steps.plan.outputs.weekly == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p data/census
+          if gh release download artifacts --pattern census.tar.gz --dir /tmp --clobber; then
+            tar -xzf /tmp/census.tar.gz -C data/census
+          else
+            echo "no census yet; training without census dependencies"
+          fi
+
+      - name: Train, evaluate and build artifacts
+        if: steps.plan.outputs.weekly == 'true'
+        run: |
+          uv run mercalli train --raw data/raw --out artifacts --census data/census \
+            --calib-start "$(date -u -d '-10 months' +%Y-%m-01)" --test-start "$(date -u -d '-4 months' +%Y-%m-01)"
+          echo "${{ steps.plan.outputs.stamp }}-${{ github.run_id }}" > artifacts/VERSION
+
+      - name: Restore the live engine state, read only
+        if: steps.plan.outputs.weekly == 'true'
+        uses: actions/cache/restore@v6
+        with:
+          path: state
+          key: state-none
+          restore-keys: state-
+
+      - name: Score the forecasts the live model made
+        if: steps.plan.outputs.weekly == 'true'
+        run: |
+          if [ -f state/mercalli.db ]; then
+            uv run mercalli evaluate-live --db sqlite:///state/mercalli.db --model-card artifacts/model.json > /dev/null
+          fi
+
+      - name: Package
+        if: steps.plan.outputs.weekly == 'true'
+        run: |
+          mkdir -p out
+          tar -czf out/artifacts.tar.gz -C artifacts \
+            --exclude=dataset-private --exclude=cache --exclude='eval/*.joblib' .
+          cp artifacts/model.json out/model-card.json
+          cp catalog/services.yaml out/services.yaml
+
+      - uses: actions/upload-artifact@v7
+        if: steps.plan.outputs.weekly == 'true'
+        with:
+          name: models
+          path: out/
+          retention-days: 7
+
+  publish:
+    needs: train
+    if: needs.train.outputs.weekly == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: models
+          path: out
+
+      - uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: out/artifacts.tar.gz
+
+      - name: Publish to the model registry
+        run: scripts/publish-artifacts.sh "${{ needs.train.outputs.stamp }}" out
+
+      - name: Commit catalog changes
+        run: |
+          cp out/services.yaml catalog/services.yaml
+          if git diff --quiet -- catalog/services.yaml; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add catalog/services.yaml
+          git commit -m "Update the verified status page catalog"
+          for _ in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep 10
+          done
+          echo "could not push the catalog update after three attempts" >&2
+          exit 1

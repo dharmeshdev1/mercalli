@@ -1,0 +1,81 @@
+# Build the web app for GitHub Pages and hand it to the live pipeline through the `site` release.
+# The build runs third-party packages, so it gets a read-only token; a separate job with write
+# access signs the result (build provenance) and publishes it, without running any of that code.
+name: Web
+
+on:
+  push:
+    branches: [main]
+    paths: ["web/**", "catalog/services.yaml", ".github/workflows/web.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: web
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - name: Service list for the pre-rendered pages
+        run: uv run --locked mercalli catalog export-services --out web/public/api/v1/services.json
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - name: Build
+        working-directory: web
+        env:
+          NEXT_PUBLIC_BASE_PATH: /mercalli
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+          rm -rf out/api
+          echo "${GITHUB_SHA::7} $(date -u +%Y-%m-%dT%H:%MZ)" > out/BUILD
+          tar -czf ../web.tar.gz -C out .
+      - uses: actions/upload-artifact@v7
+        with:
+          name: web
+          path: web.tar.gz
+          retention-days: 7
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+      id-token: write
+      attestations: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: web
+      - uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: web.tar.gz
+      - name: Publish to the site release
+        run: |
+          if ! gh release view site >/dev/null 2>&1; then
+            gh release create site --prerelease --title "Web build" \
+              --notes "The built web app. The live pipeline deploys it to GitHub Pages together with fresh data."
+          fi
+          gh release upload site web.tar.gz --clobber
+      - name: Deploy now
+        run: gh workflow run pipeline.yml

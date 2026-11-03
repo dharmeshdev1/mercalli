@@ -1,0 +1,112 @@
+# Every five minutes: poll every status page, run the models, publish the API and deploy the site.
+# Engine state (a SQLite file) travels between runs in the Actions cache. Models, graph and census
+# come from the `artifacts` release, written by the models workflow, and the web app from the `site`
+# release, written by the web workflow. Both are cached by asset id, so they are only downloaded
+# again after a new one is published.
+name: Live pipeline
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: write  # to delete superseded engine state caches
+  attestations: read
+
+concurrency:
+  group: live-pipeline
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    env:
+      MERCALLI_MODEL_CACHE: ${{ github.workspace }}/.model-cache
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install
+        run: uv sync --locked --extra ml
+
+      - name: Restore engine state
+        uses: actions/cache/restore@v6
+        with:
+          path: state
+          key: state-${{ github.run_id }}
+          restore-keys: state-
+
+      - name: Restore embedding model
+        uses: actions/cache@v6
+        with:
+          path: .model-cache
+          key: fastembed-all-MiniLM-L6-v2-1
+
+      - name: Find the current artifacts and web build
+        id: keys
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/release-keys.sh
+
+      - name: Restore model artifacts
+        uses: actions/cache@v6
+        with:
+          path: artifacts
+          key: artifacts-${{ steps.keys.outputs.artifacts || 'none' }}
+
+      - name: Restore web build
+        uses: actions/cache@v6
+        with:
+          path: web-build
+          key: web-${{ steps.keys.outputs.web || 'none' }}
+
+      - name: Download what the caches did not have
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACTS_ASSET: ${{ steps.keys.outputs.artifacts_asset }}
+          WEB_ASSET: ${{ steps.keys.outputs.web_asset }}
+        run: scripts/fetch-releases.sh
+
+      - name: Tick and publish
+        run: |
+          mkdir -p state
+          uv run mercalli tick --db sqlite:///state/mercalli.db --artifacts artifacts --cache state/cache \
+            --publish site --report state/last-tick.json
+
+      - name: Save engine state
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: state
+          key: state-${{ github.run_id }}
+
+      - name: Delete superseded engine state
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Each run saves a new state cache. Keep the newest three so the history caches are never
+          # pushed out of the repository's cache quota.
+          gh cache list --key state- --sort created_at --order desc --limit 100 --json id --jq '.[3:][].id' \
+            | xargs -r -n1 gh cache delete || true
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+      - id: deploy
+        uses: actions/deploy-pages@v5
