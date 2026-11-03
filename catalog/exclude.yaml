@@ -1,3 +1,11 @@
-# Status pages discovery should skip, by Statuspage page id, at the maintainers' discretion.
-# A page lands here when it is not useful to watch or its owner has asked not to be listed.
-- tymt9n04zgry
+# Status pages discovery skips, at the maintainers' discretion.
+#
+# page_ids: Statuspage page ids of pages that are not useful to watch, or whose owner asked not to
+# be listed.
+# domains: sites outside the scope of a professional reliability tool, such as adult content.
+page_ids:
+  - tymt9n04zgry
+domains:
+  - cam4.com
+  - chaturbate.com
+  - onlyfans.com

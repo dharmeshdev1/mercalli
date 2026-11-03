@@ -211,3 +211,30 @@ def test_history_cache_is_kept_per_month_and_survives_window_shifts(tmp_path):
 
     items = json.loads(cache.feed_path("svc").read_text())["items"]
     assert set(items) == {"i1", "i2"} and items["i1"]["name"] == "new"
+
+
+def test_excluded_pages_and_domains_never_reach_the_catalog(tmp_path, monkeypatch):
+    from mercalli import catalog
+    from mercalli.catalog import Service, write_services
+    from mercalli.domain import Category
+
+    exclude = tmp_path / "exclude.yaml"
+    exclude.write_text("page_ids: [p1]\ndomains: [example.com]\n")
+    monkeypatch.setattr(catalog, "catalog_dir", lambda: tmp_path)
+
+    def svc(sid: str, page: str, domain: str) -> Service:
+        return Service(
+            id=sid,
+            name=sid,
+            category=Category.OTHER,
+            adapter="statuspage",
+            base_url=f"https://status.{domain}",
+            domains=[domain],
+            page_id=page,
+        )
+
+    write_services(
+        [svc("a", "p1", "a.com"), svc("b", "p2", "status.example.com"), svc("c", "p3", "ok.com")],
+        tmp_path / "services.yaml",
+    )
+    assert [s.id for s in catalog.load_services(tmp_path / "services.yaml")] == ["c"]

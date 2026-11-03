@@ -26,7 +26,7 @@
 
 When a cloud, a CDN or a SaaS you rely on has a bad day, three questions matter: **what is broken,
 how long will it last, and what else will it take down?** Mercalli answers all three, live, for
-813 services, from their own public status pages.
+about 900 services, from their own public status pages.
 
 <p align="center">
   <a href="https://dharmeshdev1.github.io/mercalli/">
@@ -39,9 +39,10 @@ how long will it last, and what else will it take down?** Mercalli answers all t
 
 ## What it does
 
-- **Watches 813 status pages** every five minutes: 236 hand-picked clouds, CDNs, developer tools,
-  AI APIs, payment and messaging providers, plus 577 more it found by itself among the 20,000 most
-  visited domains. Every vendor's format is translated into one vocabulary.
+- **Watches about 900 status pages** every five minutes: 236 hand-picked clouds, CDNs, developer
+  tools, AI APIs, payment and messaging providers, plus about 670 more it found by itself among the
+  20,000 most visited domains and re-verifies every week. Every vendor's format is translated into
+  one vocabulary.
 - **Forecasts how long each open incident will last**, as a median and an 80% range that is
   calibrated on data the model never trained on: "likely resolved by 18:59 UTC, 80% range 18:30 to
   21:18". The forecast updates as the vendor posts updates.
@@ -164,7 +165,7 @@ services fail often, and a larger model overfit the few hundred positive example
 
 ```mermaid
 flowchart LR
-    P[813 status pages] -->|every 5 min| E[Engine: poll, reconcile]
+    P[About 900 status pages] -->|every 5 min| E[Engine: poll, reconcile]
     E --> DB[(SQLite or PostgreSQL)]
     DB --> M[Forecasts, blast radius,<br/>similar incidents]
     M --> DB
