@@ -111,3 +111,22 @@ jobs:
 
       - id: deploy
         uses: actions/deploy-pages@v5
+
+      - name: Keep the cadence if the scheduler stalls
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # GitHub's cron scheduler can be late or silent for long stretches. When it has not started
+          # a run in the last fifteen minutes, this run paces itself to about five minutes and starts
+          # the next one. While the scheduler works, this step does nothing.
+          last="$(gh run list --workflow pipeline.yml --event schedule --limit 1 --json createdAt --jq '.[0].createdAt // ""')"
+          if [ -n "$last" ] && [ $(( $(date -u +%s) - $(date -u -d "$last" +%s) )) -lt 900 ]; then
+            echo "the scheduler is running; nothing to do"
+            exit 0
+          fi
+          started="$(gh run view "${{ github.run_id }}" --json startedAt --jq .startedAt)"
+          spent=$(( $(date -u +%s) - $(date -u -d "$started" +%s) ))
+          if [ "$spent" -lt 270 ]; then sleep $(( 270 - spent )); fi
+          gh workflow run pipeline.yml

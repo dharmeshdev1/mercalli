@@ -176,3 +176,19 @@ jobs:
           done
           echo "could not push the catalog update after three attempts" >&2
           exit 1
+
+  restart-pipeline:
+    # A daily nudge, so the live pipeline is running even if its own chain was ever broken.
+    needs: train
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - run: |
+          running="$(gh run list --workflow pipeline.yml --status in_progress --json databaseId --jq 'length')"
+          queued="$(gh run list --workflow pipeline.yml --status queued --json databaseId --jq 'length')"
+          if [ "$running" = "0" ] && [ "$queued" = "0" ]; then gh workflow run pipeline.yml; fi
