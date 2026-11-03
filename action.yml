@@ -1,0 +1,36 @@
+name: Mercalli outage check
+description: Check the services your project depends on for open incidents, and optionally fail the job, for example to hold a deploy while a provider is down.
+author: Dharmesh Meena
+branding:
+  icon: activity
+  color: red
+
+inputs:
+  services:
+    description: Comma separated service ids, for example "github,aws,cloudflare,vercel".
+    required: true
+  fail-on:
+    description: Fail when any listed service has an open incident at or above this impact (minor, major, critical), or "never".
+    default: major
+  api:
+    description: Mercalli API base URL. Defaults to the public instance.
+    default: https://dharmeshdev1.github.io/mercalli/api/v1
+
+outputs:
+  healthy:
+    description: "true when no listed service has an open incident at or above fail-on."
+    value: ${{ steps.check.outputs.healthy }}
+  report:
+    description: A one line summary per affected service.
+    value: ${{ steps.check.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - id: check
+      shell: bash
+      env:
+        MERCALLI_SERVICES: ${{ inputs.services }}
+        MERCALLI_FAIL_ON: ${{ inputs.fail-on }}
+        MERCALLI_API: ${{ inputs.api }}
+      run: python3 "${{ github.action_path }}/action/check.py"
