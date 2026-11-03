@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import subprocess
 import sys
 from collections.abc import Iterator
@@ -40,8 +41,10 @@ def test_registering_serve_imports_nothing_heavy() -> None:
 
 
 def test_serve_is_registered_with_its_options(app: typer.Typer) -> None:
-    result = CliRunner().invoke(app, ["serve", "--help"], env={"COLUMNS": "200"})
+    # CI runners make Rich colour its help output; strip the escape codes before reading it.
+    result = CliRunner().invoke(app, ["serve", "--help"], env={"COLUMNS": "200", "NO_COLOR": "1", "TERM": "dumb"})
     assert result.exit_code == 0
+    output = re.sub(r"\x1b\[[0-9;]*m", "", result.output)
     for option in (
         "--db",
         "--host",
@@ -54,7 +57,7 @@ def test_serve_is_registered_with_its_options(app: typer.Typer) -> None:
         "--public-url",
         "--no-scheduler",
     ):
-        assert option in result.output
+        assert option in output
 
 
 def test_a_bad_config_stops_startup_with_a_clear_error(app: typer.Typer, tmp_path: Path) -> None:
