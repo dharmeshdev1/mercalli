@@ -50,10 +50,11 @@ LONG_RUNNING_MIN = 7 * 24 * 60  # open longer than a week: a vendor that forgot,
 HUB_DEPENDENTS = 20
 NUMERALS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
 LABELS = ["Not felt", "Weak", "Weak", "Light", "Moderate", "Strong", "Very strong", "Severe", "Violent", "Extreme"]
-# Used until intensity.json has been computed from history: level n+2 means the score is at or
-# above thresholds[n], which history puts at percentiles[n] of hours.
+# Used until a deployment has computed intensity.json from its own history: level n+2 means the
+# score is at or above thresholds[n], which history put at percentiles[n] of hours. These come from
+# a calibration over 576 services with full history, November 2025 to November 2026.
 DEFAULT_PERCENTILES = [50, 75, 90, 95, 98, 99, 99.5, 99.8, 99.95]
-DEFAULT_THRESHOLDS = [4, 8, 12, 16, 22, 28, 36, 48, 64]
+DEFAULT_THRESHOLDS = [49, 62, 75, 85, 105, 121, 129, 139, 244]
 
 
 def iso(dt: datetime | None) -> str | None:
