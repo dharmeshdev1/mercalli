@@ -1,0 +1,39 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+build/
+*.egg-info/
+
+# Local data and state (anchored to the repository root, so source folders of the same name are kept)
+*.db
+*.db-wal
+*.db-shm
+/data/
+/artifacts/
+/site/
+/state/
+/web-build/
+/out/
+/.model-cache/
+/.census-cache/
+
+# Web
+web/node_modules/
+web/.next/
+web/out/
+web/public/api/
+web/public/feeds/
+web/public/data/
+web/public/duckdb/
+web/next-env.d.ts
+web/*.tsbuildinfo
+
+# OS and editors
+.DS_Store
+.idea/
+.vscode/

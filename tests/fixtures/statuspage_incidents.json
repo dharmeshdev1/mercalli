@@ -1,0 +1,14 @@
+{"page":{"id":"kctbh9vrtdwd","name":"GitHub"},
+ "incidents":[
+  {"id":"inc1","name":"Elevated errors on Actions","status":"resolved","impact":"minor",
+   "created_at":"2026-11-03T10:00:00.000Z","updated_at":"2026-11-03T11:00:00.000Z","started_at":"2026-11-03T09:55:00.000Z",
+   "resolved_at":"2026-11-03T11:00:00.000Z","shortlink":"https://stspg.io/abc",
+   "incident_updates":[
+    {"status":"resolved","body":"This incident has been resolved.","created_at":"2026-11-03T11:00:00.000Z","display_at":"2026-11-03T11:00:00.000Z","affected_components":[]},
+    {"status":"identified","body":"We found the cause, an issue with our upstream provider Cloudflare.","created_at":"2026-11-03T10:20:00.000Z","display_at":"2026-11-03T10:20:00.000Z","affected_components":[]},
+    {"status":"investigating","body":"We are investigating elevated errors.","created_at":"2026-11-03T10:00:00.000Z","display_at":"2026-11-03T10:00:00.000Z","affected_components":[]}
+   ]},
+  {"id":"old1","name":"Delayed notifications","status":"resolved","impact":"minor",
+   "created_at":"2026-11-01T10:00:00.000Z","updated_at":"2026-11-01T10:05:00.000Z","resolved_at":"2026-11-01T10:05:00.000Z",
+   "incident_updates":[{"status":"resolved","body":"Between 09:00 and 09:50 notifications were delayed.","created_at":"2026-11-01T10:05:00.000Z"}]}
+ ]}

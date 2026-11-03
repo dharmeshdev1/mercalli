@@ -1,0 +1,366 @@
+# Services Mercalli watches, before verification.
+#
+# Each entry names a service, the category it belongs to, where its public status page lives and the
+# domains its customers actually talk to. `mercalli catalog discover` checks every entry, follows
+# redirects, works out which status page software it uses and writes the verified result to
+# catalog/services.yaml. Entries it cannot verify are kept here and retried on the next run.
+#
+# Categories: cloud, edge, dns, hosting, devtools, data, observability, ai, payments, messaging,
+# collaboration, identity, commerce, media, consumer.
+
+# Clouds
+- {name: Amazon Web Services, id: aws, category: cloud, status: https://health.aws.amazon.com/health/status, adapter: aws, domains: [aws.amazon.com, console.aws.amazon.com]}
+- {name: Google Cloud, id: gcp, category: cloud, status: https://status.cloud.google.com, adapter: gcp, domains: [cloud.google.com, console.cloud.google.com]}
+- {name: Microsoft Azure, id: azure, category: cloud, status: https://azure.status.microsoft/en-us/status, adapter: azure, domains: [azure.microsoft.com, portal.azure.com]}
+- {name: DigitalOcean, category: cloud, status: https://status.digitalocean.com, domains: [digitalocean.com, cloud.digitalocean.com, api.digitalocean.com]}
+- {name: Linode, category: cloud, status: https://status.linode.com, domains: [linode.com, cloud.linode.com, api.linode.com]}
+- {name: Vultr, category: cloud, status: https://status.vultr.com, domains: [vultr.com, my.vultr.com]}
+- {name: Hetzner, category: cloud, status: https://status.hetzner.com, domains: [hetzner.com, console.hetzner.cloud]}
+- {name: OVHcloud, category: cloud, status: https://status.ovhcloud.com, domains: [ovhcloud.com]}
+- {name: Scaleway, category: cloud, status: https://status.scaleway.com, domains: [scaleway.com, console.scaleway.com]}
+- {name: Oracle Cloud, category: cloud, status: https://ocistatus.oraclecloud.com, domains: [oracle.com, cloud.oracle.com]}
+- {name: IBM Cloud, category: cloud, status: https://cloud.ibm.com/status, domains: [cloud.ibm.com]}
+- {name: Backblaze, category: cloud, status: https://status.backblaze.com, domains: [backblaze.com, secure.backblaze.com]}
+- {name: Wasabi, category: cloud, status: https://status.wasabi.com, domains: [wasabi.com, console.wasabisys.com]}
+- {name: Equinix Metal, category: cloud, status: https://status.equinixmetal.com, domains: [metal.equinix.com]}
+
+# Edge networks and CDNs
+- {name: Cloudflare, category: edge, status: https://www.cloudflarestatus.com, domains: [cloudflare.com, dash.cloudflare.com, api.cloudflare.com]}
+- {name: Fastly, category: edge, status: https://www.fastlystatus.com, domains: [fastly.com, manage.fastly.com, api.fastly.com]}
+- {name: Akamai, category: edge, status: https://www.akamaistatus.com, domains: [akamai.com, control.akamai.com]}
+- {name: Bunny, category: edge, status: https://status.bunny.net, domains: [bunny.net, dash.bunny.net]}
+- {name: Gcore, category: edge, status: https://status.gcore.com, domains: [gcore.com]}
+- {name: Imperva, category: edge, status: https://status.imperva.com, domains: [imperva.com, my.imperva.com]}
+- {name: KeyCDN, category: edge, status: https://status.keycdn.com, domains: [keycdn.com]}
+- {name: Cloudinary, category: media, status: https://status.cloudinary.com, domains: [cloudinary.com, res.cloudinary.com, api.cloudinary.com]}
+- {name: imgix, category: media, status: https://status.imgix.com, domains: [imgix.com]}
+
+# DNS and certificates
+- {name: NS1, category: dns, status: https://status.ns1.com, domains: [ns1.com, my.nsone.net]}
+- {name: DNSimple, category: dns, status: https://dnsimplestatus.com, domains: [dnsimple.com]}
+- {name: DNS Made Easy, category: dns, status: https://status.dnsmadeeasy.com, domains: [dnsmadeeasy.com]}
+- {name: Namecheap, category: dns, status: https://status.namecheap.com, domains: [namecheap.com]}
+- {name: Porkbun, category: dns, status: https://status.porkbun.com, domains: [porkbun.com]}
+- {name: Gandi, category: dns, status: https://status.gandi.net, domains: [gandi.net]}
+- {name: Let's Encrypt, id: letsencrypt, category: dns, status: https://letsencrypt.status.io, domains: [letsencrypt.org, acme-v02.api.letsencrypt.org]}
+
+# Hosting and application platforms
+- {name: Vercel, category: hosting, status: https://www.vercel-status.com, domains: [vercel.com, vercel.app, api.vercel.com]}
+- {name: Netlify, category: hosting, status: https://www.netlifystatus.com, domains: [netlify.com, app.netlify.com, api.netlify.com]}
+- {name: Heroku, category: hosting, status: https://status.heroku.com, adapter: heroku, domains: [heroku.com, dashboard.heroku.com, api.heroku.com]}
+- {name: Render, category: hosting, status: https://status.render.com, domains: [render.com, dashboard.render.com, api.render.com]}
+- {name: Fly.io, id: flyio, category: hosting, status: https://status.flyio.net, domains: [fly.io, api.fly.io]}
+- {name: Railway, category: hosting, status: https://status.railway.com, domains: [railway.com, backboard.railway.com]}
+- {name: Firebase, category: hosting, status: https://status.firebase.google.com, domains: [firebase.google.com, console.firebase.google.com]}
+- {name: Supabase, category: data, status: https://status.supabase.com, domains: [supabase.com, api.supabase.com]}
+- {name: Deno Deploy, id: deno, category: hosting, status: https://www.denostatus.com, domains: [deno.com, dash.deno.com]}
+- {name: Upsun, category: hosting, status: https://status.upsun.com, domains: [upsun.com]}
+- {name: Pantheon, category: hosting, status: https://status.pantheon.io, domains: [pantheon.io, dashboard.pantheon.io]}
+- {name: WP Engine, id: wpengine, category: hosting, status: https://wpenginestatus.com, domains: [wpengine.com, my.wpengine.com]}
+- {name: Kinsta, category: hosting, status: https://status.kinsta.com, domains: [kinsta.com, my.kinsta.com]}
+- {name: Replit, category: hosting, status: https://status.replit.com, domains: [replit.com]}
+- {name: Koyeb, category: hosting, status: https://status.koyeb.com, domains: [koyeb.com, app.koyeb.com]}
+- {name: Northflank, category: hosting, status: https://status.northflank.com, domains: [northflank.com, app.northflank.com]}
+- {name: Modal, category: ai, status: https://status.modal.com, domains: [modal.com, api.modal.com]}
+- {name: Cloudways, category: hosting, status: https://status.cloudways.com, domains: [cloudways.com, platform.cloudways.com]}
+- {name: Hostinger, category: hosting, status: https://statuspage.hostinger.com, domains: [hostinger.com, hpanel.hostinger.com]}
+
+# Developer tools
+- {name: GitHub, category: devtools, status: https://www.githubstatus.com, domains: [github.com, api.github.com, raw.githubusercontent.com]}
+- {name: GitLab, category: devtools, status: https://status.gitlab.com, domains: [gitlab.com]}
+- {name: Bitbucket, category: devtools, status: https://bitbucket.status.atlassian.com, domains: [bitbucket.org, api.bitbucket.org]}
+- {name: npm, category: devtools, status: https://status.npmjs.org, domains: [npmjs.com, registry.npmjs.org]}
+- {name: Python Infrastructure, id: pypi, category: devtools, status: https://status.python.org, domains: [pypi.org, files.pythonhosted.org]}
+- {name: Docker, category: devtools, status: https://www.dockerstatus.com, domains: [docker.com, hub.docker.com, registry-1.docker.io]}
+- {name: RubyGems, category: devtools, status: https://status.rubygems.org, domains: [rubygems.org]}
+- {name: Packagist, category: devtools, status: https://status.packagist.org, domains: [packagist.org, repo.packagist.org]}
+- {name: crates.io, id: cratesio, category: devtools, status: https://status.crates.io, domains: [crates.io, static.crates.io]}
+- {name: Maven Central, id: sonatype, category: devtools, status: https://status.maven.org, domains: [central.sonatype.com, repo1.maven.org]}
+- {name: CircleCI, category: devtools, status: https://status.circleci.com, domains: [circleci.com, app.circleci.com]}
+- {name: Travis CI, id: travisci, category: devtools, status: https://www.traviscistatus.com, domains: [travis-ci.com, app.travis-ci.com]}
+- {name: Buildkite, category: devtools, status: https://www.buildkitestatus.com, domains: [buildkite.com, api.buildkite.com]}
+- {name: JFrog, category: devtools, status: https://status.jfrog.io, domains: [jfrog.com]}
+- {name: Codecov, category: devtools, status: https://status.codecov.com, domains: [codecov.io, app.codecov.io]}
+- {name: Snyk, category: devtools, status: https://status.snyk.io, domains: [snyk.io, app.snyk.io]}
+- {name: Postman, category: devtools, status: https://status.postman.com, domains: [postman.com, api.getpostman.com]}
+- {name: Expo, category: devtools, status: https://status.expo.dev, domains: [expo.dev, api.expo.dev]}
+- {name: Cursor, category: devtools, status: https://status.cursor.com, domains: [cursor.com, api2.cursor.sh]}
+- {name: Sourcegraph, category: devtools, status: https://sourcegraphstatus.com, domains: [sourcegraph.com]}
+- {name: JetBrains, category: devtools, status: https://status.jetbrains.com, domains: [jetbrains.com, account.jetbrains.com]}
+- {name: Jira, category: devtools, status: https://jira-software.status.atlassian.com, domains: [atlassian.net, atlassian.com]}
+- {name: Confluence, category: collaboration, status: https://confluence.status.atlassian.com, domains: [atlassian.net]}
+- {name: Atlassian Developer, id: atlassian, category: devtools, status: https://developer.status.atlassian.com, domains: [developer.atlassian.com]}
+- {name: Linear, category: devtools, status: https://linearstatus.com, domains: [linear.app, api.linear.app]}
+- {name: LaunchDarkly, category: devtools, status: https://status.launchdarkly.com, domains: [launchdarkly.com, app.launchdarkly.com]}
+- {name: Sentry, category: observability, status: https://status.sentry.io, domains: [sentry.io]}
+- {name: Bugsnag, category: observability, status: https://status.bugsnag.com, domains: [bugsnag.com, app.bugsnag.com]}
+- {name: Rollbar, category: observability, status: https://status.rollbar.com, domains: [rollbar.com, api.rollbar.com]}
+- {name: HashiCorp, category: devtools, status: https://status.hashicorp.com, domains: [hashicorp.com, app.terraform.io]}
+- {name: Pulumi, category: devtools, status: https://status.pulumi.com, domains: [pulumi.com, api.pulumi.com]}
+- {name: Chromatic, category: devtools, status: https://status.chromatic.com, domains: [chromatic.com]}
+- {name: BrowserStack, category: devtools, status: https://status.browserstack.com, domains: [browserstack.com]}
+- {name: Sauce Labs, id: saucelabs, category: devtools, status: https://status.saucelabs.com, domains: [saucelabs.com]}
+- {name: Cypress Cloud, id: cypress, category: devtools, status: https://www.cypressstatus.com, domains: [cypress.io, cloud.cypress.io]}
+- {name: Gitpod, category: devtools, status: https://www.gitpodstatus.com, domains: [gitpod.io]}
+- {name: Hasura, category: devtools, status: https://status.hasura.io, domains: [hasura.io, cloud.hasura.io]}
+- {name: Apollo GraphQL, id: apollo, category: devtools, status: https://www.apollographql.com/status, domains: [apollographql.com, studio.apollographql.com]}
+- {name: Auth0, category: identity, status: https://status.auth0.com, domains: [auth0.com, manage.auth0.com]}
+- {name: Statuspage, category: observability, status: https://metastatuspage.com, domains: [statuspage.io, manage.statuspage.io]}
+
+# Data
+- {name: MongoDB Cloud, id: mongodb, category: data, status: https://status.mongodb.com, domains: [mongodb.com, cloud.mongodb.com]}
+- {name: Redis Cloud, id: redis, category: data, status: https://status.redis.io, domains: [redis.io, app.redislabs.com]}
+- {name: PlanetScale, category: data, status: https://www.planetscalestatus.com, domains: [planetscale.com, app.planetscale.com]}
+- {name: Neon, category: data, status: https://neonstatus.com, domains: [neon.tech, console.neon.tech]}
+- {name: CockroachDB Cloud, id: cockroachdb, category: data, status: https://status.cockroachlabs.cloud, domains: [cockroachlabs.cloud]}
+- {name: Snowflake, category: data, status: https://status.snowflake.com, domains: [snowflake.com, app.snowflake.com]}
+- {name: Databricks, category: data, status: https://status.databricks.com, domains: [databricks.com]}
+- {name: Elastic Cloud, id: elastic, category: data, status: https://status.elastic.co, domains: [elastic.co, cloud.elastic.co]}
+- {name: Confluent Cloud, id: confluent, category: data, status: https://status.confluent.cloud, domains: [confluent.cloud, confluent.io]}
+- {name: Aiven, category: data, status: https://status.aiven.io, domains: [aiven.io, console.aiven.io]}
+- {name: Timescale, category: data, status: https://status.timescale.com, domains: [timescale.com, console.cloud.timescale.com]}
+- {name: ClickHouse Cloud, id: clickhouse, category: data, status: https://status.clickhouse.com, domains: [clickhouse.com, clickhouse.cloud]}
+- {name: Upstash, category: data, status: https://status.upstash.com, domains: [upstash.com, console.upstash.com]}
+- {name: Xata, category: data, status: https://status.xata.io, domains: [xata.io]}
+- {name: Turso, category: data, status: https://status.turso.tech, domains: [turso.tech]}
+- {name: Convex, category: data, status: https://status.convex.dev, domains: [convex.dev, dashboard.convex.dev]}
+- {name: Algolia, category: data, status: https://status.algolia.com, domains: [algolia.com, dashboard.algolia.com]}
+- {name: Fivetran, category: data, status: https://status.fivetran.com, domains: [fivetran.com]}
+- {name: dbt Cloud, id: dbt, category: data, status: https://status.getdbt.com, domains: [getdbt.com, cloud.getdbt.com]}
+- {name: Airbyte, category: data, status: https://status.airbyte.com, domains: [airbyte.com, cloud.airbyte.com]}
+- {name: Segment, category: data, status: https://status.segment.com, domains: [segment.com, app.segment.com, api.segment.io]}
+- {name: Mixpanel, category: data, status: https://www.mixpanelstatus.com, domains: [mixpanel.com, api.mixpanel.com]}
+- {name: Amplitude, category: data, status: https://status.amplitude.com, domains: [amplitude.com, api2.amplitude.com]}
+- {name: PostHog, category: data, status: https://status.posthog.com, domains: [posthog.com, us.posthog.com]}
+- {name: Heap, category: data, status: https://status.heap.io, domains: [heap.io, heapanalytics.com]}
+- {name: Census, category: data, status: https://status.getcensus.com, domains: [getcensus.com]}
+- {name: Hightouch, category: data, status: https://status.hightouch.com, domains: [hightouch.com]}
+- {name: Metabase, category: data, status: https://status.metabase.com, domains: [metabase.com]}
+- {name: Mode, category: data, status: https://status.mode.com, domains: [mode.com, app.mode.com]}
+- {name: Sigma Computing, id: sigma, category: data, status: https://status.sigmacomputing.com, domains: [sigmacomputing.com]}
+- {name: Looker Studio, id: lookerstudio, category: data, status: https://status.looker.com, domains: [looker.com]}
+- {name: Astronomer, category: data, status: https://status.astronomer.io, domains: [astronomer.io]}
+- {name: Prefect, category: data, status: https://prefect.status.io, domains: [prefect.io, app.prefect.cloud]}
+
+# Observability and incident response
+- {name: Datadog, category: observability, status: https://status.datadoghq.com, domains: [datadoghq.com, app.datadoghq.com]}
+- {name: New Relic, category: observability, status: https://status.newrelic.com, domains: [newrelic.com, one.newrelic.com]}
+- {name: Grafana Cloud, id: grafana, category: observability, status: https://status.grafana.com, domains: [grafana.com, grafana.net]}
+- {name: Honeycomb, category: observability, status: https://status.honeycomb.io, domains: [honeycomb.io, ui.honeycomb.io]}
+- {name: PagerDuty, category: observability, status: https://status.pagerduty.com, domains: [pagerduty.com, events.pagerduty.com]}
+- {name: Opsgenie, category: observability, status: https://opsgenie.status.atlassian.com, domains: [opsgenie.com, api.opsgenie.com]}
+- {name: Splunk Observability, id: splunk, category: observability, status: https://status.signalfx.com, domains: [splunk.com, signalfx.com]}
+- {name: Sumo Logic, id: sumologic, category: observability, status: https://status.sumologic.com, domains: [sumologic.com]}
+- {name: Better Stack, id: betterstack, category: observability, status: https://status.betterstack.com, domains: [betterstack.com, uptime.betterstack.com]}
+- {name: Checkly, category: observability, status: https://status.checklyhq.com, domains: [checklyhq.com, app.checklyhq.com]}
+- {name: Cronitor, category: observability, status: https://status.cronitor.io, domains: [cronitor.io]}
+- {name: incident.io, id: incidentio, category: observability, status: https://status.incident.io, domains: [incident.io, app.incident.io]}
+- {name: Rootly, category: observability, status: https://status.rootly.com, domains: [rootly.com]}
+- {name: Logz.io, id: logzio, category: observability, status: https://status.logz.io, domains: [logz.io, app.logz.io]}
+- {name: Mezmo, category: observability, status: https://status.mezmo.com, domains: [mezmo.com]}
+- {name: Axiom, category: observability, status: https://status.axiom.co, domains: [axiom.co, app.axiom.co]}
+- {name: Pingdom, category: observability, status: https://status.pingdom.com, domains: [pingdom.com, my.pingdom.com]}
+- {name: UptimeRobot, category: observability, status: https://status.uptimerobot.com, domains: [uptimerobot.com]}
+- {name: FireHydrant, category: observability, status: https://status.firehydrant.com, domains: [firehydrant.com, app.firehydrant.io]}
+
+# AI and machine learning
+- {name: OpenAI, category: ai, status: https://status.openai.com, domains: [openai.com, api.openai.com, chatgpt.com]}
+- {name: Mistral AI, id: mistral, category: ai, status: https://status.mistral.ai, domains: [mistral.ai, api.mistral.ai]}
+- {name: Cohere, category: ai, status: https://status.cohere.com, domains: [cohere.com, api.cohere.com]}
+- {name: Hugging Face, id: huggingface, category: ai, status: https://status.huggingface.co, domains: [huggingface.co, api-inference.huggingface.co]}
+- {name: Replicate, category: ai, status: https://www.replicatestatus.com, domains: [replicate.com, api.replicate.com]}
+- {name: Groq, category: ai, status: https://groqstatus.com, domains: [groq.com, api.groq.com]}
+- {name: Together AI, id: together, category: ai, status: https://status.together.ai, domains: [together.ai, api.together.xyz]}
+- {name: Fireworks AI, id: fireworks, category: ai, status: https://status.fireworks.ai, domains: [fireworks.ai, api.fireworks.ai]}
+- {name: Perplexity, category: ai, status: https://status.perplexity.com, domains: [perplexity.ai, api.perplexity.ai]}
+- {name: ElevenLabs, category: ai, status: https://status.elevenlabs.io, domains: [elevenlabs.io, api.elevenlabs.io]}
+- {name: Pinecone, category: ai, status: https://status.pinecone.io, domains: [pinecone.io, app.pinecone.io]}
+- {name: OpenRouter, category: ai, status: https://status.openrouter.ai, domains: [openrouter.ai]}
+- {name: DeepSeek, category: ai, status: https://status.deepseek.com, domains: [deepseek.com, api.deepseek.com]}
+- {name: Stability AI, id: stability, category: ai, status: https://status.stability.ai, domains: [stability.ai, api.stability.ai]}
+- {name: AssemblyAI, category: ai, status: https://status.assemblyai.com, domains: [assemblyai.com, api.assemblyai.com]}
+- {name: Deepgram, category: ai, status: https://status.deepgram.com, domains: [deepgram.com, api.deepgram.com]}
+- {name: Weights & Biases, id: wandb, category: ai, status: https://status.wandb.com, domains: [wandb.ai, api.wandb.ai]}
+- {name: Baseten, category: ai, status: https://status.baseten.co, domains: [baseten.co, app.baseten.co]}
+- {name: Anyscale, category: ai, status: https://status.anyscale.com, domains: [anyscale.com, console.anyscale.com]}
+- {name: Runway, category: ai, status: https://status.runwayml.com, domains: [runwayml.com, app.runwayml.com]}
+- {name: Midjourney, category: ai, status: https://status.midjourney.com, domains: [midjourney.com]}
+- {name: Character.AI, id: characterai, category: ai, status: https://status.character.ai, domains: [character.ai]}
+- {name: Lambda, category: ai, status: https://status.lambda.ai, domains: [lambda.ai, cloud.lambdalabs.com]}
+- {name: CoreWeave, category: ai, status: https://status.coreweave.com, domains: [coreweave.com]}
+- {name: RunPod, category: ai, status: https://uptime.runpod.io, domains: [runpod.io]}
+- {name: Vapi, category: ai, status: https://status.vapi.ai, domains: [vapi.ai, api.vapi.ai]}
+- {name: LangChain, id: langsmith, category: ai, status: https://status.smith.langchain.com, domains: [smith.langchain.com, api.smith.langchain.com]}
+- {name: Weaviate, category: ai, status: https://status.weaviate.io, domains: [weaviate.io, console.weaviate.cloud]}
+- {name: Qdrant, category: ai, status: https://status.qdrant.io, domains: [qdrant.tech, cloud.qdrant.io]}
+- {name: Jasper, category: ai, status: https://status.jasper.ai, domains: [jasper.ai]}
+
+# Payments and finance
+- {name: Stripe, category: payments, status: https://status.stripe.com, adapter: stripe, domains: [stripe.com, api.stripe.com, dashboard.stripe.com, js.stripe.com]}
+- {name: PayPal, category: payments, status: https://www.paypal-status.com, domains: [paypal.com, api-m.paypal.com]}
+- {name: Square, category: payments, status: https://www.issquareup.com, domains: [squareup.com, connect.squareup.com]}
+- {name: Adyen, category: payments, status: https://status.adyen.com, domains: [adyen.com, checkout-live.adyen.com]}
+- {name: Braintree, category: payments, status: https://status.braintreepayments.com, domains: [braintreepayments.com, api.braintreegateway.com]}
+- {name: Plaid, category: payments, status: https://status.plaid.com, domains: [plaid.com, production.plaid.com]}
+- {name: Coinbase, category: payments, status: https://status.coinbase.com, domains: [coinbase.com, api.coinbase.com]}
+- {name: Kraken, category: payments, status: https://status.kraken.com, domains: [kraken.com, api.kraken.com]}
+- {name: Gemini Exchange, id: geminiexchange, category: payments, status: https://status.gemini.com, domains: [gemini.com, api.gemini.com]}
+- {name: Robinhood, category: payments, status: https://status.robinhood.com, domains: [robinhood.com, api.robinhood.com]}
+- {name: Razorpay, category: payments, status: https://status.razorpay.com, domains: [razorpay.com, api.razorpay.com, checkout.razorpay.com]}
+- {name: Cashfree, category: payments, status: https://status.cashfree.com, domains: [cashfree.com, api.cashfree.com]}
+- {name: Checkout.com, id: checkoutcom, category: payments, status: https://status.checkout.com, domains: [checkout.com, api.checkout.com]}
+- {name: Wise, category: payments, status: https://status.wise.com, domains: [wise.com, api.transferwise.com]}
+- {name: Paddle, category: payments, status: https://paddlestatus.com, domains: [paddle.com, api.paddle.com]}
+- {name: Chargebee, category: payments, status: https://status.chargebee.com, domains: [chargebee.com]}
+- {name: Recurly, category: payments, status: https://status.recurly.com, domains: [recurly.com, v3.recurly.com]}
+- {name: Mollie, category: payments, status: https://status.mollie.com, domains: [mollie.com, api.mollie.com]}
+- {name: GoCardless, category: payments, status: https://www.gocardless-status.com, domains: [gocardless.com, api.gocardless.com]}
+- {name: Lemon Squeezy, id: lemonsqueezy, category: payments, status: https://status.lemonsqueezy.com, domains: [lemonsqueezy.com]}
+- {name: Brex, category: payments, status: https://status.brex.com, domains: [brex.com]}
+- {name: Ramp, category: payments, status: https://status.ramp.com, domains: [ramp.com]}
+- {name: Mercury, category: payments, status: https://status.mercury.com, domains: [mercury.com]}
+- {name: Marqeta, category: payments, status: https://status.marqeta.com, domains: [marqeta.com]}
+- {name: Modern Treasury, id: moderntreasury, category: payments, status: https://status.moderntreasury.com, domains: [moderntreasury.com]}
+- {name: Avalara, category: payments, status: https://status.avalara.com, domains: [avalara.com]}
+
+# Messaging and customer communication
+- {name: Twilio, category: messaging, status: https://status.twilio.com, domains: [twilio.com, api.twilio.com]}
+- {name: SendGrid, category: messaging, status: https://status.sendgrid.com, domains: [sendgrid.com, api.sendgrid.com]}
+- {name: Mailgun, category: messaging, status: https://status.mailgun.com, domains: [mailgun.com, api.mailgun.net]}
+- {name: Postmark, category: messaging, status: https://status.postmarkapp.com, domains: [postmarkapp.com, api.postmarkapp.com]}
+- {name: Mailchimp, category: messaging, status: https://status.mailchimp.com, domains: [mailchimp.com]}
+- {name: Resend, category: messaging, status: https://resend-status.com, domains: [resend.com, api.resend.com]}
+- {name: Vonage, category: messaging, status: https://vonageapi.statuspage.io, domains: [vonage.com, api.nexmo.com]}
+- {name: Sinch, category: messaging, status: https://status.sinch.com, domains: [sinch.com]}
+- {name: Plivo, category: messaging, status: https://status.plivo.com, domains: [plivo.com, api.plivo.com]}
+- {name: Bird, category: messaging, status: https://status.bird.com, domains: [bird.com]}
+- {name: Pusher, category: messaging, status: https://status.pusher.com, domains: [pusher.com]}
+- {name: Ably, category: messaging, status: https://status.ably.com, domains: [ably.com]}
+- {name: Stream, category: messaging, status: https://status.getstream.io, domains: [getstream.io]}
+- {name: Agora, category: messaging, status: https://status.agora.io, domains: [agora.io]}
+- {name: Daily, category: messaging, status: https://status.daily.co, domains: [daily.co, api.daily.co]}
+- {name: LiveKit, category: messaging, status: https://status.livekit.io, domains: [livekit.io, cloud.livekit.io]}
+- {name: Intercom, category: messaging, status: https://www.intercomstatus.com, domains: [intercom.com, api.intercom.io]}
+- {name: Zendesk, category: messaging, status: https://status.zendesk.com, domains: [zendesk.com]}
+- {name: Freshworks, category: messaging, status: https://status.freshworks.com, domains: [freshworks.com, freshdesk.com]}
+- {name: Front, category: messaging, status: https://www.frontstatus.com, domains: [front.com, app.frontapp.com]}
+- {name: Customer.io, id: customerio, category: messaging, status: https://status.customer.io, domains: [customer.io]}
+- {name: Braze, category: messaging, status: https://braze.statuspage.io, domains: [braze.com]}
+- {name: OneSignal, category: messaging, status: https://status.onesignal.com, domains: [onesignal.com]}
+- {name: Iterable, category: messaging, status: https://status.iterable.com, domains: [iterable.com]}
+- {name: Klaviyo, category: messaging, status: https://status.klaviyo.com, domains: [klaviyo.com, a.klaviyo.com]}
+- {name: HubSpot, category: messaging, status: https://status.hubspot.com, domains: [hubspot.com, api.hubapi.com]}
+- {name: Drift, category: messaging, status: https://status.drift.com, domains: [drift.com]}
+- {name: Help Scout, id: helpscout, category: messaging, status: https://status.helpscout.net, domains: [helpscout.net]}
+- {name: Crisp, category: messaging, status: https://status.crisp.chat, domains: [crisp.chat]}
+- {name: MSG91, category: messaging, status: https://status.msg91.com, domains: [msg91.com]}
+- {name: Exotel, category: messaging, status: https://status.exotel.com, domains: [exotel.com]}
+- {name: Gupshup, category: messaging, status: https://status.gupshup.io, domains: [gupshup.io]}
+
+# Collaboration and productivity
+- {name: Slack, category: collaboration, status: https://slack-status.com, adapter: slack, domains: [slack.com, app.slack.com, hooks.slack.com]}
+- {name: Zoom, category: collaboration, status: https://www.zoomstatus.com, domains: [zoom.us, api.zoom.us]}
+- {name: Notion, category: collaboration, status: https://www.notion-status.com, domains: [notion.so, notion.com]}
+- {name: Figma, category: collaboration, status: https://status.figma.com, domains: [figma.com]}
+- {name: Miro, category: collaboration, status: https://status.miro.com, domains: [miro.com]}
+- {name: Canva, category: collaboration, status: https://www.canvastatus.com, domains: [canva.com]}
+- {name: Asana, category: collaboration, status: https://status.asana.com, domains: [asana.com, app.asana.com]}
+- {name: Trello, category: collaboration, status: https://trello.status.atlassian.com, domains: [trello.com]}
+- {name: Airtable, category: collaboration, status: https://status.airtable.com, domains: [airtable.com, api.airtable.com]}
+- {name: monday.com, id: monday, category: collaboration, status: https://status.monday.com, domains: [monday.com]}
+- {name: ClickUp, category: collaboration, status: https://clickup.statuspage.io, domains: [clickup.com, app.clickup.com]}
+- {name: Dropbox, category: collaboration, status: https://status.dropbox.com, domains: [dropbox.com]}
+- {name: Box, category: collaboration, status: https://status.box.com, domains: [box.com, app.box.com]}
+- {name: DocuSign, category: collaboration, status: https://status.docusign.com, domains: [docusign.com, docusign.net]}
+- {name: Loom, category: collaboration, status: https://www.loomstatus.com, domains: [loom.com]}
+- {name: Calendly, category: collaboration, status: https://www.calendlystatus.com, domains: [calendly.com]}
+- {name: Typeform, category: collaboration, status: https://status.typeform.com, domains: [typeform.com, api.typeform.com]}
+- {name: Webex, category: collaboration, status: https://status.webex.com, domains: [webex.com]}
+- {name: Smartsheet, category: collaboration, status: https://status.smartsheet.com, domains: [smartsheet.com, app.smartsheet.com]}
+- {name: Coda, category: collaboration, status: https://status.coda.io, domains: [coda.io]}
+- {name: Zapier, category: collaboration, status: https://status.zapier.com, domains: [zapier.com, hooks.zapier.com]}
+- {name: Make, category: collaboration, status: https://status.make.com, domains: [make.com, hook.make.com]}
+- {name: n8n, category: collaboration, status: https://status.n8n.io, domains: [n8n.io, app.n8n.cloud]}
+- {name: Retool, category: collaboration, status: https://status.retool.com, domains: [retool.com]}
+- {name: Grammarly, category: collaboration, status: https://status.grammarly.com, domains: [grammarly.com]}
+- {name: 1Password, id: onepassword, category: identity, status: https://status.1password.com, domains: [1password.com, my.1password.com]}
+- {name: LastPass, category: identity, status: https://status.lastpass.com, domains: [lastpass.com]}
+- {name: Bitwarden, category: identity, status: https://status.bitwarden.com, domains: [bitwarden.com, vault.bitwarden.com]}
+- {name: Discord, category: consumer, status: https://discordstatus.com, domains: [discord.com, gateway.discord.gg, cdn.discordapp.com]}
+- {name: Zoho, category: collaboration, status: https://status.zoho.com, domains: [zoho.com]}
+- {name: ServiceNow, category: collaboration, status: https://status.servicenow.com, domains: [servicenow.com]}
+- {name: Workday, category: collaboration, status: https://status.workday.com, domains: [workday.com]}
+- {name: Gusto, category: collaboration, status: https://status.gusto.com, domains: [gusto.com]}
+- {name: Rippling, category: collaboration, status: https://status.rippling.com, domains: [rippling.com]}
+- {name: Deel, category: collaboration, status: https://status.deel.com, domains: [deel.com]}
+- {name: Lattice, category: collaboration, status: https://status.lattice.com, domains: [lattice.com]}
+- {name: Greenhouse, category: collaboration, status: https://status.greenhouse.io, domains: [greenhouse.io, boards.greenhouse.io]}
+- {name: Lever, category: collaboration, status: https://status.lever.co, domains: [lever.co, jobs.lever.co]}
+
+# Identity and security
+- {name: Okta, category: identity, status: https://status.okta.com, domains: [okta.com]}
+- {name: Clerk, category: identity, status: https://status.clerk.com, domains: [clerk.com, api.clerk.com]}
+- {name: Duo, category: identity, status: https://status.duo.com, domains: [duo.com, duosecurity.com]}
+- {name: OneLogin, category: identity, status: https://status.onelogin.com, domains: [onelogin.com]}
+- {name: WorkOS, category: identity, status: https://status.workos.com, domains: [workos.com, api.workos.com]}
+- {name: Stytch, category: identity, status: https://status.stytch.com, domains: [stytch.com, api.stytch.com]}
+- {name: Descope, category: identity, status: https://status.descope.com, domains: [descope.com, api.descope.com]}
+- {name: FusionAuth, category: identity, status: https://status.fusionauth.io, domains: [fusionauth.io]}
+- {name: Tailscale, category: identity, status: https://status.tailscale.com, domains: [tailscale.com, login.tailscale.com, controlplane.tailscale.com]}
+- {name: Twingate, category: identity, status: https://status.twingate.com, domains: [twingate.com]}
+- {name: Zscaler, category: identity, status: https://trust.zscaler.com, domains: [zscaler.com]}
+- {name: Netskope, category: identity, status: https://trustportal.netskope.com, domains: [netskope.com]}
+- {name: Vanta, category: identity, status: https://status.vanta.com, domains: [vanta.com]}
+- {name: Drata, category: identity, status: https://status.drata.com, domains: [drata.com]}
+- {name: Doppler, category: identity, status: https://www.dopplerstatus.com, domains: [doppler.com]}
+- {name: Infisical, category: identity, status: https://status.infisical.com, domains: [infisical.com]}
+- {name: Cloudsmith, category: devtools, status: https://status.cloudsmith.io, domains: [cloudsmith.io]}
+- {name: Socket, category: devtools, status: https://status.socket.dev, domains: [socket.dev]}
+- {name: GitGuardian, category: identity, status: https://status.gitguardian.com, domains: [gitguardian.com]}
+
+# Commerce, websites and media
+- {name: Shopify, category: commerce, status: https://www.shopifystatus.com, domains: [shopify.com, myshopify.com]}
+- {name: BigCommerce, category: commerce, status: https://status.bigcommerce.com, domains: [bigcommerce.com]}
+- {name: Squarespace, category: commerce, status: https://status.squarespace.com, domains: [squarespace.com]}
+- {name: Wix, category: commerce, status: https://status.wix.com, domains: [wix.com]}
+- {name: Webflow, category: commerce, status: https://status.webflow.com, domains: [webflow.com]}
+- {name: WordPress.com, id: automattic, category: commerce, status: https://automatticstatus.com, domains: [wordpress.com, wp.com]}
+- {name: Ghost, category: commerce, status: https://status.ghost.org, domains: [ghost.org, ghost.io]}
+- {name: Contentful, category: commerce, status: https://www.contentfulstatus.com, domains: [contentful.com, cdn.contentful.com]}
+- {name: Sanity, category: commerce, status: https://www.sanity-status.com, domains: [sanity.io, api.sanity.io]}
+- {name: Storyblok, category: commerce, status: https://status.storyblok.com, domains: [storyblok.com]}
+- {name: Strapi Cloud, id: strapi, category: commerce, status: https://status.strapi.io, domains: [strapi.io]}
+- {name: Builder.io, id: builderio, category: commerce, status: https://status.builder.io, domains: [builder.io]}
+- {name: Framer, category: commerce, status: https://status.framer.com, domains: [framer.com]}
+- {name: Mux, category: media, status: https://status.mux.com, domains: [mux.com, api.mux.com, stream.mux.com]}
+- {name: Vimeo, category: media, status: https://www.vimeostatus.com, domains: [vimeo.com, player.vimeo.com]}
+- {name: Wistia, category: media, status: https://status.wistia.com, domains: [wistia.com]}
+- {name: Gumroad, category: commerce, status: https://status.gumroad.com, domains: [gumroad.com]}
+- {name: Patreon, category: commerce, status: https://status.patreon.com, domains: [patreon.com]}
+- {name: Eventbrite, category: commerce, status: https://status.eventbrite.com, domains: [eventbrite.com]}
+- {name: Substack, category: commerce, status: https://substack.statuspage.io, domains: [substack.com]}
+- {name: Medium, category: consumer, status: https://medium.statuspage.io, domains: [medium.com]}
+- {name: Udemy, category: consumer, status: https://status.udemy.com, domains: [udemy.com]}
+- {name: Coursera, category: consumer, status: https://status.coursera.org, domains: [coursera.org]}
+
+# Consumer platforms
+- {name: Reddit, category: consumer, status: https://www.redditstatus.com, domains: [reddit.com, oauth.reddit.com]}
+- {name: X, id: x, category: consumer, status: https://api.twitterstat.us, domains: [x.com, api.x.com]}
+- {name: Twitch, category: consumer, status: https://status.twitch.tv, domains: [twitch.tv]}
+- {name: Roblox, category: consumer, status: https://status.roblox.com, domains: [roblox.com]}
+- {name: Epic Games, id: epicgames, category: consumer, status: https://status.epicgames.com, domains: [epicgames.com]}
+- {name: Riot Games, id: riot, category: consumer, status: https://status.riotgames.com, domains: [riotgames.com]}
+- {name: Duolingo, category: consumer, status: https://status.duolingo.com, domains: [duolingo.com]}
+- {name: Quizlet, category: consumer, status: https://status.quizlet.com, domains: [quizlet.com]}
+- {name: Strava, category: consumer, status: https://status.strava.com, domains: [strava.com]}
+- {name: Bluesky, category: consumer, status: https://status.bsky.app, domains: [bsky.app]}
+- {name: Mastodon Social, id: mastodon, category: consumer, status: https://status.mastodon.social, domains: [mastodon.social]}
+- {name: Kick, category: consumer, status: https://status.kick.com, domains: [kick.com]}
+- {name: Spotify for Developers, id: spotify, category: consumer, status: https://spotify.statuspage.io, domains: [spotify.com]}
+- {name: DoorDash, category: consumer, status: https://status.doordash.com, domains: [doordash.com]}
+- {name: Instacart, category: consumer, status: https://status.instacart.com, domains: [instacart.com]}
+- {name: Uber Developers, id: uber, category: consumer, status: https://status.uber.com, domains: [uber.com]}
+- {name: Lyft, category: consumer, status: https://status.lyft.com, domains: [lyft.com]}
+- {name: Airbnb, category: consumer, status: https://status.airbnb.com, domains: [airbnb.com]}
+- {name: Tidal, category: consumer, status: https://status.tidal.com, domains: [tidal.com]}
+- {name: SoundCloud, category: consumer, status: https://status.soundcloud.com, domains: [soundcloud.com]}

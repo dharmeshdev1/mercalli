@@ -1,0 +1,18 @@
+Mercalli
+Copyright 2026 Dharmesh Meena
+
+This product includes or downloads at run time the following third party work:
+
+- all-MiniLM-L6-v2 sentence embedding model by the sentence-transformers authors, Apache License 2.0.
+  Downloaded from the Hugging Face Hub when the models first run.
+- Geologica and Martian Mono typefaces, SIL Open Font License 1.1, bundled with the web app.
+- The Tranco list of popular domains (https://tranco-list.eu), described in Le Pochat et al.,
+  "Tranco: A Research-Oriented Top Sites Ranking Hardened Against Manipulation", NDSS 2019.
+- IP to ASN data from iptoasn.com, published under the Public Domain Dedication and License.
+- Published IP ranges from Amazon Web Services, Google Cloud, Microsoft Azure, Oracle Cloud,
+  Cloudflare, Fastly and DigitalOcean.
+
+Incident data is collected from the public status pages of the services listed in
+catalog/services.yaml. It belongs to those services. Mercalli links every incident back to the
+vendor's own page, and its published dataset carries titles, timings and statuses rather than the
+text of vendor updates.
