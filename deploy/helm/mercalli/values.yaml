@@ -1,0 +1,156 @@
+# Default values for the Mercalli chart.
+
+image:
+  repository: ghcr.io/dharmeshdev1/mercalli
+  # Defaults to the chart's appVersion.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Every replica serves the API. Exactly one runs the poller and sends alerts: they elect it with a
+# PostgreSQL advisory lock, so more replicas (and rolling updates) never send an alert twice.
+replicaCount: 1
+
+server:
+  # Seconds between polls of every status page.
+  interval: 60
+  # The URL people reach this server at. Used for links in alerts and feeds.
+  publicUrl: ""
+  logLevel: info
+  # Serve the web app bundled in the image at /.
+  web: true
+  extraArgs: []
+
+database:
+  # Name of an existing Secret holding the database URL, for example
+  # postgresql://mercalli:password@postgres:5432/mercalli
+  existingSecret: ""
+  secretKey: DATABASE_URL
+  # Or have the chart create that Secret from this URL. Prefer existingSecret outside of trials.
+  url: ""
+
+# The config file (docs/self-hosting.md). Strings may reference environment variables as ${NAME};
+# provide secret ones through secretEnv or envFrom rather than writing them here.
+config:
+  stack:
+    - github
+    - cloudflare
+    - aws
+  blast_threshold: 0.3
+  channels: []
+  #  - type: slack
+  #    name: slack
+  #    url: ${SLACK_WEBHOOK_URL}
+  #    min_impact: minor
+
+# Environment variables taken from keys of existing Secrets, for ${NAME} references in config.
+secretEnv: []
+#  - name: SLACK_WEBHOOK_URL
+#    secretName: mercalli-alerts
+#    secretKey: slack-webhook-url
+#  - name: MERCALLI_WEBHOOK_SECRET
+#    secretName: mercalli-alerts
+#    secretKey: webhook-secret
+
+# Whole Secrets or ConfigMaps to expose as environment variables.
+envFrom: []
+#  - secretRef:
+#      name: mercalli-alerts
+
+extraEnv: []
+
+# Model, graph and census artifacts produced offline, at /var/lib/mercalli/artifacts.
+artifacts:
+  # Download the published artifacts with an init container each time a pod starts. A failed
+  # download does not block the pod; it runs without forecasts until the next start.
+  pull: true
+  url: https://github.com/dharmeshdev1/mercalli/releases/download/artifacts/artifacts.tar.gz
+  # Or mount artifacts you manage yourself (pull is then skipped), for example:
+  # volume:
+  #   persistentVolumeClaim:
+  #     claimName: mercalli-artifacts
+  volume: {}
+
+# With the forecasting models loaded the server settles around 1.1 GiB (measured with Docker
+# Compose, 813 services); without artifacts it needs about 150 MiB.
+resources:
+  requests:
+    cpu: 250m
+    memory: 1280Mi
+  limits:
+    memory: 2Gi
+
+probes:
+  startup:
+    periodSeconds: 5
+    failureThreshold: 60
+  liveness:
+    periodSeconds: 15
+    timeoutSeconds: 3
+    failureThreshold: 4
+  # Readiness waits for the database and a first completed tick (a minute or so after start).
+  readiness:
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# A tick in progress gets 20 seconds to finish on shutdown.
+terminationGracePeriodSeconds: 45
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  # ingress-nginx buffers responses by default. The server already asks it not to for the live
+  # stream (X-Accel-Buffering: no); a long read timeout keeps idle stream connections open.
+  #  nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+  hosts:
+    - host: mercalli.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: mercalli-tls
+  #    hosts:
+  #      - mercalli.example.com
+
+# A Prometheus Operator ServiceMonitor for /metrics.
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  scrapeTimeout: 10s
+  labels: {}
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automount: false
+
+podAnnotations: {}
+podLabels: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

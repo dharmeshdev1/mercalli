@@ -1,0 +1,23 @@
+Mercalli is starting. It is ready once it reaches the database and finishes its first poll of
+every status page, usually within a minute or two.
+
+  kubectl --namespace {{ .Release.Namespace }} rollout status deployment/{{ include "mercalli.fullname" . }}
+  kubectl --namespace {{ .Release.Namespace }} port-forward service/{{ include "mercalli.fullname" . }} 8080:{{ .Values.service.port }}
+
+Then open http://localhost:8080 for the web app, or:
+
+  curl -s localhost:8080/readyz
+  curl -s localhost:8080/api/v1/overview.json
+  curl -sN localhost:8080/api/v1/stream
+{{- if .Values.ingress.enabled }}
+
+Through the ingress:
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}/
+{{- end }}
+{{- end }}
+{{- if not .Values.server.publicUrl }}
+
+server.publicUrl is not set, so alerts will not link back to this server. Set it to the URL
+people use to reach Mercalli.
+{{- end }}

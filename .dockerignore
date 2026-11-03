@@ -1,0 +1,25 @@
+# The image needs the package, its catalog and the web app sources. Nothing else enters the
+# build context, which keeps builds fast and keeps local databases and secrets out of layers.
+*
+!pyproject.toml
+!README.md
+!LICENSE
+!NOTICE
+!src/
+!catalog/
+!web/
+
+**/__pycache__
+**/*.py[cod]
+**/.DS_Store
+
+# Built output and generated data; the server answers /api and /feeds live.
+web/node_modules
+web/.next
+web/out
+web/public/api
+web/public/feeds
+web/public/data
+web/public/duckdb
+web/*.tsbuildinfo
+web/next-env.d.ts

@@ -1,0 +1,115 @@
+# Mercalli self-hosted with PostgreSQL.
+#
+#   docker compose -f deploy/docker-compose.yml up --build -d
+#   docker compose -f deploy/docker-compose.yml --profile observability up --build -d   # plus Prometheus and Grafana
+#
+# Settings and secrets come from the environment or from deploy/.env (see docs/self-hosting.md).
+# The config file is deploy/mercalli.example.yaml; point MERCALLI_CONFIG_FILE at your own copy.
+
+name: mercalli
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: mercalli
+      POSTGRES_USER: mercalli
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mercalli}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mercalli -d mercalli"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  # Fetches the published models, dependency graph and census once at start. A failed download
+  # never blocks the server; it then runs without forecasts. Restart this service to refresh.
+  artifacts:
+    image: ${MERCALLI_IMAGE:-mercalli:local}
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    command: ["pull-artifacts", "--dir", "/var/lib/mercalli/artifacts"]
+    environment:
+      MERCALLI_ARTIFACTS_URL: ${MERCALLI_ARTIFACTS_URL:-https://github.com/dharmeshdev1/mercalli/releases/download/artifacts/artifacts.tar.gz}
+    volumes:
+      - state:/var/lib/mercalli
+    restart: "no"
+
+  mercalli:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: ${MERCALLI_IMAGE:-mercalli:local}
+    depends_on:
+      db:
+        condition: service_healthy
+      artifacts:
+        condition: service_completed_successfully
+    environment:
+      MERCALLI_DB: postgresql://mercalli:${POSTGRES_PASSWORD:-mercalli}@db:5432/mercalli
+      MERCALLI_CONFIG: /etc/mercalli/mercalli.yaml
+      MERCALLI_INTERVAL: ${MERCALLI_INTERVAL:-60}
+      MERCALLI_PUBLIC_URL: ${MERCALLI_PUBLIC_URL:-http://localhost:8080}
+      MERCALLI_LOG_LEVEL: ${MERCALLI_LOG_LEVEL:-info}
+      MERCALLI_ARTIFACTS: /var/lib/mercalli/artifacts
+      # Secrets the config file refers to as ${NAME}. Unset ones leave their channel off.
+      MERCALLI_WEBHOOK_URL: ${MERCALLI_WEBHOOK_URL:-}
+      MERCALLI_WEBHOOK_SECRET: ${MERCALLI_WEBHOOK_SECRET:-}
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+      TEAMS_WEBHOOK_URL: ${TEAMS_WEBHOOK_URL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MERCALLI_EMAIL_FROM: ${MERCALLI_EMAIL_FROM:-}
+      MERCALLI_EMAIL_TO: ${MERCALLI_EMAIL_TO:-}
+      PAGERDUTY_ROUTING_KEY: ${PAGERDUTY_ROUTING_KEY:-}
+    volumes:
+      - ${MERCALLI_CONFIG_FILE:-./mercalli.example.yaml}:/etc/mercalli/mercalli.yaml:ro
+      - state:/var/lib/mercalli
+    ports:
+      - "${MERCALLI_PORT:-8080}:8080"
+    # Long enough for a tick in progress to finish (the server allows it 20 seconds).
+    stop_grace_period: 30s
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    profiles: [observability]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=15d
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    depends_on: [mercalli]
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:12.0.0
+    profiles: [observability]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/dashboards/mercalli.json
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
+      - grafana:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    depends_on: [prometheus]
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  state:
+  prometheus:
+  grafana:

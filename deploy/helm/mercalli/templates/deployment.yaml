@@ -1,0 +1,172 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mercalli.fullname" . }}
+  labels:
+    {{- include "mercalli.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "mercalli.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        # Roll the pods when the config file changes.
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "mercalli.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "mercalli.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automount }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- if and .Values.artifacts.pull (not .Values.artifacts.volume) }}
+      initContainers:
+        - name: pull-artifacts
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["pull-artifacts", "--dir", "/var/lib/mercalli/artifacts/current"]
+          env:
+            - name: MERCALLI_ARTIFACTS_URL
+              value: {{ .Values.artifacts.url | quote }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            - name: artifacts
+              mountPath: /var/lib/mercalli/artifacts
+            - name: tmp
+              mountPath: /tmp
+      {{- end }}
+      containers:
+        - name: mercalli
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - serve
+            - --config
+            - /etc/mercalli/mercalli.yaml
+            - --interval
+            - {{ .Values.server.interval | quote }}
+            {{- if .Values.artifacts.volume }}
+            - --artifacts
+            - /var/lib/mercalli/artifacts
+            {{- else if .Values.artifacts.pull }}
+            - --artifacts
+            - /var/lib/mercalli/artifacts/current
+            {{- end }}
+            {{- with .Values.server.extraArgs }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          env:
+            - name: MERCALLI_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mercalli.databaseSecret" . }}
+                  key: {{ .Values.database.secretKey }}
+            - name: MERCALLI_LOG_LEVEL
+              value: {{ .Values.server.logLevel | quote }}
+            {{- if not .Values.server.web }}
+            # An empty value unsets the image's default, so only the API is served.
+            - name: MERCALLI_WEB
+              value: ""
+            {{- end }}
+            {{- with .Values.server.publicUrl }}
+            - name: MERCALLI_PUBLIC_URL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- range .Values.secretEnv }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secretName }}
+                  key: {{ .secretKey }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/mercalli
+              readOnly: true
+            # The root filesystem is read only. Libraries need scratch space and the model hooks
+            # cache embeddings, so both get a writable emptyDir.
+            - name: tmp
+              mountPath: /tmp
+            - name: state
+              mountPath: /var/lib/mercalli/cache
+            {{- if or .Values.artifacts.pull .Values.artifacts.volume }}
+            - name: artifacts
+              mountPath: /var/lib/mercalli/artifacts
+              readOnly: true
+            {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "mercalli.fullname" . }}
+        - name: tmp
+          emptyDir: {}
+        - name: state
+          emptyDir: {}
+        {{- if .Values.artifacts.volume }}
+        - name: artifacts
+          {{- toYaml .Values.artifacts.volume | nindent 10 }}
+        {{- else if .Values.artifacts.pull }}
+        - name: artifacts
+          emptyDir: {}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

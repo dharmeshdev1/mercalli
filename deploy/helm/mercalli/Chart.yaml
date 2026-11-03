@@ -1,0 +1,15 @@
+apiVersion: v2
+name: mercalli
+description: Self-hosted Mercalli, outage intelligence for the services you depend on
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.25.0-0"
+home: https://github.com/dharmeshdev1/mercalli
+sources:
+  - https://github.com/dharmeshdev1/mercalli
+keywords:
+  - outages
+  - status-pages
+  - incident-management
+  - sre

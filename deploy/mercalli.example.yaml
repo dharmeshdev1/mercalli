@@ -1,0 +1,84 @@
+# Mercalli self-hosted config.
+#
+# Copy this file, list the services you depend on under `stack`, and turn on the channels you
+# want. Secrets stay in the environment: ${NAME} reads a variable (startup fails if it is unset),
+# ${NAME:-fallback} uses the fallback when it is unset or empty. A channel whose destination is
+# empty stays off, so every channel below is off until its variable is set.
+#
+# Service ids are the ones in the catalog: see /api/v1/services.json on your server.
+
+# The address people use to reach this server, for links in alerts and feeds.
+public_url: ${MERCALLI_PUBLIC_URL:-http://localhost:8080}
+
+# The services you depend on. Incident alerts are only sent for these.
+stack:
+  - github
+  - cloudflare
+  - aws
+  - stripe
+  - openai
+  - vercel
+  - slack
+
+# Warn when Mercalli puts at least this chance on an upstream incident hitting a stack service.
+blast_threshold: 0.3
+
+# Events older than this when a channel gets to them (after an outage, say) are skipped.
+max_event_age_minutes: 360
+
+channels:
+  # Generic webhook: a JSON body signed with X-Mercalli-Signature: sha256=<HMAC of the body>.
+  - type: webhook
+    name: webhook
+    url: ${MERCALLI_WEBHOOK_URL:-}
+    secret: ${MERCALLI_WEBHOOK_SECRET:-}
+    events: [incident.opened, incident.updated, incident.resolved, forecast, blast]
+    min_impact: none
+
+  # Slack incoming webhook (https://api.slack.com/messaging/webhooks).
+  - type: slack
+    name: slack
+    url: ${SLACK_WEBHOOK_URL:-}
+    events: [incident.opened, incident.resolved, forecast, blast]
+    min_impact: minor
+
+  # Discord channel webhook (Server settings, Integrations, Webhooks).
+  - type: discord
+    name: discord
+    url: ${DISCORD_WEBHOOK_URL:-}
+    min_impact: major
+
+  # Microsoft Teams: a Workflows "When a Teams webhook request is received" URL, or a classic
+  # incoming webhook URL. Both accept the Adaptive Card Mercalli sends.
+  - type: teams
+    name: teams
+    url: ${TEAMS_WEBHOOK_URL:-}
+    min_impact: major
+
+  # Email over SMTP. security is starttls (port 587), ssl (465) or none (25).
+  - type: email
+    name: email
+    events: [incident.opened, incident.resolved]
+    min_impact: major
+    settings:
+      host: ${SMTP_HOST:-}
+      port: 587
+      security: starttls
+      username: ${SMTP_USERNAME:-}
+      password: ${SMTP_PASSWORD:-}
+      from: ${MERCALLI_EMAIL_FROM:-mercalli@localhost}
+      to: ${MERCALLI_EMAIL_TO:-}
+
+  # PagerDuty Events API v2: triggers when an incident opens, resolves when it ends.
+  - type: pagerduty
+    name: pagerduty
+    min_impact: major
+    settings:
+      routing_key: ${PAGERDUTY_ROUTING_KEY:-}
+
+# How long to keep raw history. Incidents themselves are kept forever.
+retention:
+  polls_days: 7
+  predictions_days: 180
+  events_days: 30
+  deliveries_days: 30
