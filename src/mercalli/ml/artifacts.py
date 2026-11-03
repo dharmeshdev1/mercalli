@@ -174,6 +174,7 @@ def replays(
     window: int = WINDOW_AFTER,
     cluster_hours: float = 6.0,
     min_services: int = 6,
+    min_events: int = 10,
 ) -> dict[str, Any]:
     """The biggest cascades in history, found from what downstream services said.
 
@@ -245,6 +246,8 @@ def replays(
                     "names_upstream": p in (x["mentions"] or []),
                 }
             )
+        if len(events) < min_events:
+            continue  # a handful of incidents is a coincidence, not a cascade worth replaying
         named_count = sum(e["names_upstream"] for e in events)
         if anchor:
             upstream = {
