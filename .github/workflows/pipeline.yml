@@ -28,7 +28,7 @@ jobs:
     timeout-minutes: 15
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy_again.outputs.page_url }}
     env:
       MERCALLI_MODEL_CACHE: ${{ github.workspace }}/.model-cache
     steps:
@@ -110,6 +110,15 @@ jobs:
           path: site
 
       - id: deploy
+        continue-on-error: true  # deployed again below if an earlier deployment was still finishing
+        uses: actions/deploy-pages@v5
+
+      - name: Let an earlier deployment finish
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 90
+
+      - id: deploy_again
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v5
 
       - name: Keep the cadence, whatever the scheduler does
