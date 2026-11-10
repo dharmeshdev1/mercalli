@@ -166,8 +166,8 @@ jobs:
         run: |
           cp out/services.yaml catalog/services.yaml
           if git diff --quiet -- catalog/services.yaml; then exit 0; fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "Dharmesh Meena"
+          git config user.email "176051217+dharmeshdev1@users.noreply.github.com"
           git add catalog/services.yaml
           git commit -m "Update the verified status page catalog"
           for _ in 1 2 3; do
