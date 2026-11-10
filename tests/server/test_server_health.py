@@ -49,6 +49,8 @@ def test_metrics_cover_ticks_requests_incidents_and_streams(make_app: Callable[.
     with TestClient(make_app(scheduler=True, engine_factory=lambda: engine)) as client:
         wait_until(lambda: engine.finished >= 1)
         wait_until(lambda: 'mercalli_ticks_total{result="ok"}' in client.get("/metrics").text)
+        # The incident gauges are set when the documents are rebuilt, a step after the tick itself.
+        wait_until(lambda: 'mercalli_open_incidents{impact="major"} 1.0' in client.get("/metrics").text)
         client.get("/api/v1/services/github.json")
         client.get("/api/v1/services/nope.json")
         text = client.get("/metrics").text

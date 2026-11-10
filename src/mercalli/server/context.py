@@ -104,7 +104,10 @@ class ServerContext:
             return None
         edition = self.settings.edition
         return Notifier(
-            self.db, self.config, builder_factory=lambda now: LiveBuilder(self.db, self.store, now=now, edition=edition)
+            self.db,
+            self.config,
+            builder_factory=lambda now: LiveBuilder(self.db, self.store, now=now, edition=edition),
+            clock=self.clock,  # one clock for the whole server: an event's age is judged on the same time line
         )
 
     # Lifecycle ------------------------------------------------------------------------------------
