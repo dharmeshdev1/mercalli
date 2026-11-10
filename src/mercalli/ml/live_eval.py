@@ -9,7 +9,7 @@ end time is unknown.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 from sqlalchemy import select
@@ -35,7 +35,10 @@ def evaluate_live(db: Database, *, since: datetime | None = None) -> dict[str, A
             first[inc.id] = (p, inc)
 
     def score(pairs: list[tuple[PredictionRow, IncidentRow]]) -> dict[str, float]:
-        truth = np.array([max(0.0, (inc.resolved_at - p.made_at).total_seconds() / 60) for p, inc in pairs])
+        # The query keeps only incidents with resolved_at set.
+        truth = np.array(
+            [max(0.0, (cast(datetime, inc.resolved_at) - p.made_at).total_seconds() / 60) for p, inc in pairs]
+        )
         p10 = np.array([p.p10 for p, _ in pairs])
         p50 = np.array([p.p50 for p, _ in pairs])
         p90 = np.array([p.p90 for p, _ in pairs])

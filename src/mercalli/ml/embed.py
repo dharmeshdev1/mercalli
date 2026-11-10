@@ -32,7 +32,7 @@ class Embedder:
             for k, v in zip(data["keys"], data["vecs"], strict=True):
                 self._cache[str(k)] = v
 
-    def _load(self):  # type: ignore[no-untyped-def]
+    def _load(self):
         if self._model is None:
             from fastembed import TextEmbedding
 

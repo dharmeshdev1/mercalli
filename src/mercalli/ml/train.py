@@ -124,7 +124,7 @@ def train_recovery(
         fold = fold_of.get(incident_id)
         return priors if fold is None else oof[fold]
 
-    snaps = make_snapshots(inc, upd)
+    snaps: list[dict[str, Any]] = make_snapshots(inc, upd)
     parts: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for r in snaps:
         parts[labels[r["incident_id"]]].append(r)

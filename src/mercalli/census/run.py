@@ -21,7 +21,7 @@ from mercalli.census.classify import (
     within,
 )
 from mercalli.census.iprange import parse_ip
-from mercalli.census.models import DomainRecord
+from mercalli.census.models import DomainRecord, Source
 from mercalli.census.net import (
     DEFAULT_NAMESERVERS,
     AddressResolver,
@@ -106,7 +106,7 @@ def _sorted_ips(addresses: list[str]) -> list[str]:
 
 async def _survey(rank: int | None, domain: str, ctx: _Context) -> DomainRecord:
     domain = domain.strip().lower().rstrip(".")
-    source = "tranco" if rank is not None else "catalog"
+    source: Source = "tranco" if rank is not None else "catalog"
     errors: list[str] = []
 
     zone, ns_hosts, ns_status = await ctx.resolver.zone_of(domain)

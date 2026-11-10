@@ -30,6 +30,8 @@ jobs:
         run: uv sync --locked --all-extras --group dev
       - name: Lint
         run: uv run ruff check . && uv run ruff format --check .
+      - name: Types
+        run: uv run mypy src
       - name: Test
         run: uv run pytest -q
 

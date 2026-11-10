@@ -103,7 +103,7 @@ def backfill(
 ) -> None:
     """Download incident histories into a resumable raw cache."""
     from mercalli.backfill import RawCache, backfill_details, backfill_history_index, snapshot_feeds
-    from mercalli.catalog import load_services
+    from mercalli.catalog import Service, load_services
     from mercalli.http import PoliteClient
 
     cutoff = datetime.fromisoformat(since).replace(tzinfo=UTC)
@@ -117,7 +117,7 @@ def backfill(
             hist = [s for s in services if s.history and s.adapter == "statuspage"]
             done = 0
 
-            async def one(svc) -> None:  # type: ignore[no-untyped-def]
+            async def one(svc: Service) -> None:
                 nonlocal done
                 pages = await backfill_history_index(c, svc, cache)
                 ok, failed = 0, 0

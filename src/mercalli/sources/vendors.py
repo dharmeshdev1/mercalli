@@ -185,8 +185,9 @@ def parse_gcp(service_id: str, raw: dict[str, Any]) -> Incident:
 
 
 async def gcp_snapshot(client: PoliteClient, service: Service) -> Snapshot:
+    data: Any
     data, elapsed = await client.get_json_timed(GCP_INCIDENTS)
-    incidents = [parse_gcp(service.id, r) for r in data]  # type: ignore[union-attr]
+    incidents = [parse_gcp(service.id, r) for r in data]
     open_ = [i for i in incidents if i.is_open]
     snap = Snapshot(service_id=service.id, incidents=open_)
     snap.indicator = max((i.impact for i in open_), key=lambda i: i.rank, default=Impact.NONE)
@@ -197,8 +198,8 @@ async def gcp_snapshot(client: PoliteClient, service: Service) -> Snapshot:
 
 
 async def gcp_history(client: PoliteClient, service: Service) -> list[Incident]:
-    data = await client.get_json(GCP_INCIDENTS)
-    return [parse_gcp(service.id, r) for r in data]  # type: ignore[union-attr]
+    data: Any = await client.get_json(GCP_INCIDENTS)
+    return [parse_gcp(service.id, r) for r in data]
 
 
 # Azure ---------------------------------------------------------------------------------------------
@@ -271,6 +272,7 @@ def parse_slack(service_id: str, raw: dict[str, Any]) -> Incident:
 
 
 async def slack_snapshot(client: PoliteClient, service: Service) -> Snapshot:
+    data: Any
     data, elapsed = await client.get_json_timed(SLACK_CURRENT)
     incidents = [parse_slack(service.id, i) for i in data.get("active_incidents") or []]
     snap = Snapshot(service_id=service.id, incidents=[i for i in incidents if i.is_open])
@@ -337,6 +339,7 @@ def parse_heroku(service_id: str, raw: dict[str, Any]) -> Incident:
 
 
 async def heroku_snapshot(client: PoliteClient, service: Service) -> Snapshot:
+    data: Any
     data, elapsed = await client.get_json_timed(HEROKU_CURRENT)
     comps = [
         Component(id=s["system"], name=s["system"], status=_HEROKU_HEALTH.get(s.get("status", ""), Health.UNKNOWN))
@@ -410,6 +413,7 @@ def parse_statusio_incident(service: Service, raw: dict[str, Any]) -> Incident |
 
 
 async def statusio_snapshot(client: PoliteClient, service: Service) -> Snapshot:
+    data: Any
     data, elapsed = await client.get_json_timed(STATUSIO_API.format(page_id=service.page_id))
     result = data.get("result") or {}
     comps = []

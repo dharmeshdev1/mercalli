@@ -164,11 +164,11 @@ def _live_tables(hist: History, up: pl.DataFrame, deps: Dependencies) -> dict[st
         rate.append(recent / max(1.0, (now - start) / 1440))
         before_n.append(len(sv))
         generic_share.append(float(hist.generic[v].mean()) if len(sv) else 0.0)
-        counts: dict[str, int] = {}
+        mention_counts: dict[str, int] = {}
         for m in hist.mentions[v]:
             for u in m:
-                counts[u] = counts.get(u, 0) + 1
-        named[v] = counts
+                mention_counts[u] = mention_counts.get(u, 0) + 1
+        named[v] = mention_counts
     return {
         "services": services,
         "category_codes": [

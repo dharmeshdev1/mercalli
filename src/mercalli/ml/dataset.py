@@ -185,9 +185,9 @@ def build(raw: Path, services: list[Service]) -> tuple[pl.DataFrame, pl.DataFram
         feed = cache.feed_path(svc.id)
         if feed.exists():
             for item in json.loads(feed.read_text()).get("items", {}).values():
-                inc = _parse_item(svc, item)
-                if inc is not None:
-                    add(inc, svc, "feed")
+                parsed = _parse_item(svc, item)
+                if parsed is not None:
+                    add(parsed, svc, "feed")
 
     inc_df = pl.DataFrame(list(incidents.values()), infer_schema_length=None)
     upd_df = pl.DataFrame([r for rows in updates.values() for r in rows], infer_schema_length=None)

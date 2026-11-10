@@ -96,8 +96,8 @@ def zone_offset(token: str, page_zone: str | None) -> timedelta | None:
     """The UTC offset a history timestamp was printed in, or None when it cannot be told."""
     m = _GMT_OFFSET.match(token)
     if m:
-        minutes = int(m.group(2)) * 60 + int(m.group(3) or 0)
-        return timedelta(minutes=minutes if m.group(1) == "+" else -minutes)
+        gmt_minutes = int(m.group(2)) * 60 + int(m.group(3) or 0)
+        return timedelta(minutes=gmt_minutes if m.group(1) == "+" else -gmt_minutes)
     zone = (page_zone or "").lower()
     if token == "IST" and any(c in zone for c in ("dublin", "london")):
         token = "IST_IE"

@@ -266,10 +266,10 @@ class Database:
             if gone:
                 # Nobody will poll these again, so their open incidents would stay open forever.
                 now = datetime.now(UTC)
-                for row in s.scalars(
+                for inc_row in s.scalars(
                     select(IncidentRow).where(IncidentRow.service_id.in_(gone), IncidentRow.resolved_at.is_(None))
                 ):
-                    row.resolved_at, row.status, row.resolved_inferred = now, Phase.RESOLVED.value, True
+                    inc_row.resolved_at, inc_row.status, inc_row.resolved_inferred = now, Phase.RESOLVED.value, True
 
     def record_snapshot(self, snap: Snapshot) -> None:
         with self.session() as s:
@@ -339,7 +339,7 @@ class Database:
                     for i, u in enumerate(inc.updates)
                 )
             if change and change != "incident.recorded":
-                payload = {"title": inc.title, "impact": inc.impact.value, "status": inc.status.value}
+                payload: dict[str, Any] = {"title": inc.title, "impact": inc.impact.value, "status": inc.status.value}
                 if reopened:
                     payload["reopened"] = True
                 s.add(EventRow(at=seen_at, kind=change, service_id=inc.service_id, incident_id=inc.id, payload=payload))

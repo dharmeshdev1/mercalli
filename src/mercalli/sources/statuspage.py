@@ -124,5 +124,5 @@ async def snapshot(client: PoliteClient, service: Service) -> Snapshot:
 
 
 async def recent_incidents(client: PoliteClient, service: Service) -> list[Incident]:
-    data = await client.get_json(f"{service.base_url}/api/v2/incidents.json")
-    return [parse_incident(service.id, i, service.base_url) for i in data.get("incidents") or []]  # type: ignore[union-attr]
+    data: Any = await client.get_json(f"{service.base_url}/api/v2/incidents.json")
+    return [parse_incident(service.id, i, service.base_url) for i in data.get("incidents") or []]

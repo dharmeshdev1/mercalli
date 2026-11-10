@@ -121,8 +121,8 @@ class Engine:
         found: dict[str, Incident] = {}
         if svc.adapter in RECENT:
             try:
-                for inc in await recent(client, svc):
-                    found[inc.id] = inc
+                for incident in await recent(client, svc):
+                    found[incident.id] = incident
             except Exception as exc:  # network or parse failure: fall back to inferring
                 log.info("could not read recent incidents for %s: %s", svc.id, exc)
         for iid in gone:

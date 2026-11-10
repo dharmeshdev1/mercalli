@@ -18,6 +18,7 @@ from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import cast
 
 import numpy as np
 import polars as pl
@@ -49,7 +50,7 @@ class Priors:
             pl.col("duration_min").is_not_null() & ~pl.col("retroactive") & (pl.col("impact") != "maintenance")
         )
         d = d.with_columns(pl.col("duration_min").log1p().alias("ld"))
-        p = cls(global_log_median=float(d["ld"].median() or math.log1p(60)))
+        p = cls(global_log_median=float(cast(float | None, d["ld"].median()) or math.log1p(60)))
         for row in d.group_by("category").agg(pl.col("ld").median()).iter_rows(named=True):
             p.category[row["category"]] = float(row["ld"])
         agg = d.group_by("service_id").agg(
