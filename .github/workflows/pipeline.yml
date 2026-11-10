@@ -112,21 +112,39 @@ jobs:
       - id: deploy
         uses: actions/deploy-pages@v5
 
-      - name: Keep the cadence if the scheduler stalls
+      - name: Keep the cadence, whatever the scheduler does
         if: always()
+        continue-on-error: true  # never the reason a deployed site is reported as failed
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          # GitHub's cron scheduler can be late or silent for long stretches. When it has not started
-          # a run in the last fifteen minutes, this run paces itself to about five minutes and starts
-          # the next one. While the scheduler works, this step does nothing.
-          last="$(gh run list --workflow pipeline.yml --event schedule --limit 1 --json createdAt --jq '.[0].createdAt // ""')"
-          if [ -n "$last" ] && [ $(( $(date -u +%s) - $(date -u -d "$last" +%s) )) -lt 900 ]; then
-            echo "the scheduler is running; nothing to do"
+          # GitHub's cron scheduler can be hours late or silent, especially for a five-minute
+          # schedule. So every run, scheduled or not, starts the next one unless another is already
+          # queued or running, paced to about five minutes; the cron schedule only restarts the chain
+          # if it ever breaks. The daily models run and the weekly census are started here when they
+          # are overdue, and the workflows are re-enabled once a day, so a quiet repository is not
+          # switched off by GitHub's 60-day inactivity rule.
+          now=$(date -u +%s)
+          due() {  # due <workflow file> <seconds>: no success in that long, and none running now
+            local last status
+            last="$(gh run list --workflow "$1" --status success --limit 1 --json createdAt --jq '.[0].createdAt // ""')"
+            status="$(gh run list --workflow "$1" --limit 1 --json status --jq '.[0].status // "none"')"
+            [ "$status" != "in_progress" ] && [ "$status" != "queued" ] || return 1
+            [ -z "$last" ] || [ $(( now - $(date -u -d "$last" +%s) )) -gt "$2" ]
+          }
+          if due models.yml 90000; then
+            gh workflow run models.yml && echo "started the daily models run"
+            for w in pipeline.yml models.yml census.yml; do gh workflow enable "$w" || true; done
+          fi
+          if due census.yml 691200; then gh workflow run census.yml && echo "started the weekly census"; fi
+          others="$(gh run list --workflow pipeline.yml --limit 20 --json databaseId,status \
+            --jq "[.[] | select(.databaseId != ${GITHUB_RUN_ID}) | select(.status != \"completed\")] | length")"
+          if [ "${others:-0}" -gt 0 ]; then
+            echo "another run is queued or running; nothing to do"
             exit 0
           fi
-          started="$(gh run view "${{ github.run_id }}" --json startedAt --jq .startedAt)"
-          spent=$(( $(date -u +%s) - $(date -u -d "$started" +%s) ))
+          started="$(gh run view "$GITHUB_RUN_ID" --json startedAt --jq .startedAt)"
+          spent=$(( now - $(date -u -d "$started" +%s) ))
           if [ "$spent" -lt 270 ]; then sleep $(( 270 - spent )); fi
           gh workflow run pipeline.yml
