@@ -28,7 +28,7 @@ jobs:
     timeout-minutes: 15
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url || steps.deploy_again.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url }}
     env:
       MERCALLI_MODEL_CACHE: ${{ github.workspace }}/.model-cache
     steps:
@@ -110,23 +110,42 @@ jobs:
           path: site
 
       - id: deploy
-        continue-on-error: true  # deployed again below if an earlier deployment was still finishing
-        uses: actions/deploy-pages@v5
         env:
-          # Pages names a deployment by this value and quietly keeps the old files when a new
-          # deployment reuses it, so every run gets its own instead of the commit alone.
-          GITHUB_SHA: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-
-      - name: Let an earlier deployment finish
-        if: steps.deploy.outcome == 'failure'
-        run: sleep 90
-
-      - id: deploy_again
-        if: steps.deploy.outcome == 'failure'
-        uses: actions/deploy-pages@v5
-        env:
-          GITHUB_SHA: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-again
-
+          GH_TOKEN: ${{ github.token }}
+          BUILD_VERSION: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          # Deploys this run's github-pages artifact through the Pages API. Pages names a deployment
+          # by its build version and keeps serving the old files when a deployment reuses one, and
+          # actions/deploy-pages always uses the bare commit, so between commits the site stopped
+          # changing. Each run deploys under its own version. Refusals (an earlier deployment still
+          # finishing) are retried; the step ends when Pages reports the deployment live.
+          set -euo pipefail
+          artifact="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" \
+            --jq '.artifacts[] | select(.name == "github-pages") | .id')"
+          oidc="$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r .value)"
+          echo "::add-mask::$oidc"
+          for attempt in 1 2 3 4 5; do
+            if out="$(gh api -X POST "repos/$GITHUB_REPOSITORY/pages/deployments" -F artifact_id="$artifact" \
+                -f pages_build_version="$BUILD_VERSION" -f oidc_token="$oidc" 2>&1)"; then
+              break
+            fi
+            echo "attempt $attempt refused: $out"
+            if [ "$attempt" = 5 ]; then exit 1; fi
+            sleep 45
+          done
+          id="$(jq -r '.id // (.status_url | split("/") | last)' <<<"$out")"
+          echo "page_url=$(jq -r '.page_url // ""' <<<"$out")" >> "$GITHUB_OUTPUT"
+          status=unknown
+          for _ in $(seq 1 120); do
+            status="$(gh api "repos/$GITHUB_REPOSITORY/pages/deployments/$id" --jq .status)"
+            case "$status" in
+              succeed) echo "deployed $BUILD_VERSION"; exit 0 ;;
+              *failed*|*cancelled*|*lost*|*error*) echo "::error::Pages deployment $status"; exit 1 ;;
+            esac
+            sleep 5
+          done
+          echo "::error::Pages deployment still $status after ten minutes"
+          exit 1
       - name: Keep the cadence, whatever the scheduler does
         if: always()
         continue-on-error: true  # never the reason a deployed site is reported as failed
