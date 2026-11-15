@@ -13,9 +13,7 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-  actions: write  # to delete superseded engine state caches
+  actions: write  # to delete superseded engine state caches and keep the cadence
   attestations: read
 
 concurrency:
@@ -26,9 +24,6 @@ jobs:
   tick:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     env:
       MERCALLI_MODEL_CACHE: ${{ github.workspace }}/.model-cache
     steps:
@@ -103,49 +98,10 @@ jobs:
           gh cache list --key state- --sort created_at --order desc --limit 100 --json id --jq '.[3:][].id' \
             | xargs -r -n1 gh cache delete || true
 
-      - uses: actions/configure-pages@v6
-
       - uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
-      - id: deploy
-        env:
-          GH_TOKEN: ${{ github.token }}
-          BUILD_VERSION: ${{ github.sha }}
-        run: |
-          # Deploys this run's github-pages artifact through the Pages API. Pages names a deployment
-          # by its build version and keeps serving the old files when a deployment reuses one, and
-          # actions/deploy-pages always uses the bare commit, so between commits the site stopped
-          # changing. Each run deploys under its own version. Refusals (an earlier deployment still
-          # finishing) are retried; the step ends when Pages reports the deployment live.
-          set -euo pipefail
-          artifact="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" \
-            --jq '.artifacts[] | select(.name == "github-pages") | .id')"
-          oidc="$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r .value)"
-          echo "::add-mask::$oidc"
-          for attempt in 1 2 3 4 5; do
-            if out="$(gh api -X POST "repos/$GITHUB_REPOSITORY/pages/deployments" -F artifact_id="$artifact" \
-                -f pages_build_version="$BUILD_VERSION" -f oidc_token="$oidc" 2>&1)"; then
-              break
-            fi
-            echo "attempt $attempt refused: $out"
-            if [ "$attempt" = 5 ]; then exit 1; fi
-            sleep 45
-          done
-          id="$(jq -r '.id // (.status_url | split("/") | last)' <<<"$out")"
-          echo "page_url=$(jq -r '.page_url // ""' <<<"$out")" >> "$GITHUB_OUTPUT"
-          status=unknown
-          for _ in $(seq 1 120); do
-            status="$(gh api "repos/$GITHUB_REPOSITORY/pages/deployments/$id" --jq .status)"
-            case "$status" in
-              succeed) echo "deployed $BUILD_VERSION"; exit 0 ;;
-              *failed*|*cancelled*|*lost*|*error*) echo "::error::Pages deployment $status"; exit 1 ;;
-            esac
-            sleep 5
-          done
-          echo "::error::Pages deployment still $status after ten minutes"
-          exit 1
       - name: Keep the cadence, whatever the scheduler does
         if: always()
         continue-on-error: true  # never the reason a deployed site is reported as failed
@@ -182,3 +138,61 @@ jobs:
           spent=$(( now - $(date -u -d "$started" +%s) ))
           if [ "$spent" -lt 270 ]; then sleep $(( 270 - spent )); fi
           gh workflow run pipeline.yml
+
+  # Deploys what tick built. It runs none of the third-party code above, so it alone holds the
+  # Pages, OIDC and repository-write permissions a deployment needs.
+  deploy:
+    needs: tick
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      pages: write
+      id-token: write
+      actions: read  # to find this run's github-pages artifact
+      contents: write  # to create the commit object that names the deployment
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Deploys this run's github-pages artifact through the Pages API. Pages names a deployment
+          # by its build version and keeps serving the old files when a deployment reuses one, and
+          # actions/deploy-pages always uses the bare commit, so between commits the site stopped
+          # changing. Each run deploys under its own version. Refusals (an earlier deployment still
+          # finishing) are retried; the step ends when Pages reports the deployment live.
+          set -euo pipefail
+          # The build version has to be a commit of this repository, so each run makes one: the same
+          # tree as the deployed commit, on no branch, never part of the history.
+          tree="$(gh api "repos/$GITHUB_REPOSITORY/git/commits/$GITHUB_SHA" --jq .tree.sha)"
+          BUILD_VERSION="$(gh api -X POST "repos/$GITHUB_REPOSITORY/git/commits" -f tree="$tree" -f "parents[]=$GITHUB_SHA" \
+            -f message="Pages deployment for run $GITHUB_RUN_ID" -f "author[name]=Dharmesh Meena" \
+            -f "author[email]=176051217+dharmeshdev1@users.noreply.github.com" --jq .sha)"
+          artifact="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" \
+            --jq '.artifacts[] | select(.name == "github-pages") | .id')"
+          oidc="$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r .value)"
+          echo "::add-mask::$oidc"
+          for attempt in 1 2 3 4 5; do
+            if out="$(gh api -X POST "repos/$GITHUB_REPOSITORY/pages/deployments" -F artifact_id="$artifact" \
+                -f pages_build_version="$BUILD_VERSION" -f oidc_token="$oidc" 2>&1)"; then
+              break
+            fi
+            echo "attempt $attempt refused: $out"
+            if [ "$attempt" = 5 ]; then exit 1; fi
+            sleep 45
+          done
+          id="$(jq -r '.id // (.status_url | split("/") | last)' <<<"$out")"
+          echo "page_url=$(jq -r '.page_url // ""' <<<"$out")" >> "$GITHUB_OUTPUT"
+          status=unknown
+          for _ in $(seq 1 120); do
+            status="$(gh api "repos/$GITHUB_REPOSITORY/pages/deployments/$id" --jq .status)"
+            case "$status" in
+              succeed) echo "deployed $BUILD_VERSION"; exit 0 ;;
+              *failed*|*cancelled*|*lost*|*error*) echo "::error::Pages deployment $status"; exit 1 ;;
+            esac
+            sleep 5
+          done
+          echo "::error::Pages deployment still $status after ten minutes"
+          exit 1
