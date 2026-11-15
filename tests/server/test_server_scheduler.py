@@ -118,9 +118,10 @@ def test_prune_runs_once_a_day(make_app: Callable[..., FastAPI], db: Database) -
             cutoff = datetime.now(UTC) - timedelta(days=8)
             return int(s.scalar(select(func.count()).where(PollRow.at < cutoff)) or 0)
 
+    seeded = old_polls()  # the fixture's own polls age past the cutoff as real days pass
     with db.session() as s:
         s.add(PollRow(service_id="github", at=old, ok=True, latency_ms=10.0, health="operational", open_incidents=0))
-    assert old_polls() == 1
+    assert old_polls() == seeded + 1
     engine = FakeEngine()
     with TestClient(make_app(scheduler=True, engine_factory=lambda: engine)):
         wait_until(lambda: db.kv_get("server:last_prune") is not None)

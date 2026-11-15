@@ -20,7 +20,6 @@ from typing import TYPE_CHECKING, Any, Protocol
 
 from sqlalchemy import delete
 
-from mercalli.domain import utcnow
 from mercalli.engine import ModelHook, TickReport
 from mercalli.http import PoliteClient
 from mercalli.notify.config import Retention
@@ -216,7 +215,7 @@ class Scheduler:
 
     async def _record_tick(self, report: TickReport) -> None:
         metrics = self.ctx.metrics
-        finished = utcnow()
+        finished = self.ctx.clock()
         state = {"report": report.as_dict(), "finished_at": finished.isoformat()}
         metrics.tick_duration.observe(report.duration_s)
         metrics.last_tick.set(finished.timestamp())
@@ -270,7 +269,7 @@ class Scheduler:
         self.ctx.hub.poke()
 
     async def _prune_if_due(self) -> None:
-        now = utcnow()
+        now = self.ctx.clock()
         try:
             if self._last_prune is None:
                 at = ((await asyncio.to_thread(self.ctx.db.kv_get, LAST_PRUNE_KEY)) or {}).get("at")
