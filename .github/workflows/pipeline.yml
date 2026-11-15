@@ -112,7 +112,7 @@ jobs:
       - id: deploy
         env:
           GH_TOKEN: ${{ github.token }}
-          BUILD_VERSION: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          BUILD_VERSION: ${{ github.sha }}
         run: |
           # Deploys this run's github-pages artifact through the Pages API. Pages names a deployment
           # by its build version and keeps serving the old files when a deployment reuses one, and
