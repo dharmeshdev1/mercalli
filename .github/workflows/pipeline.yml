@@ -112,6 +112,10 @@ jobs:
       - id: deploy
         continue-on-error: true  # deployed again below if an earlier deployment was still finishing
         uses: actions/deploy-pages@v5
+        env:
+          # Pages names a deployment by this value and quietly keeps the old files when a new
+          # deployment reuses it, so every run gets its own instead of the commit alone.
+          GITHUB_SHA: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Let an earlier deployment finish
         if: steps.deploy.outcome == 'failure'
@@ -120,6 +124,8 @@ jobs:
       - id: deploy_again
         if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v5
+        env:
+          GITHUB_SHA: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-again
 
       - name: Keep the cadence, whatever the scheduler does
         if: always()
